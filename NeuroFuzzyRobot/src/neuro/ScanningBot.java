@@ -1,16 +1,12 @@
-package robo;
+package neuro;
 
 import robocode.AdvancedRobot;
 import robocode.ScannedRobotEvent;
 import robocode.util.Utils;
 
-import neuroFuzzy.*;
+public class ScanningBot extends AdvancedRobot {
 
-public class NeuroBot extends AdvancedRobot {
-
-	NeuralNet nn;
-	
-	public NeuroBot() {
+	public ScanningBot() {
 		
 	}
 	

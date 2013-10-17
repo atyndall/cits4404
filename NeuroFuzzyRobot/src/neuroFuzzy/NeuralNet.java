@@ -23,25 +23,25 @@ public class NeuralNet {
 			outputNeurons.add(new OutputNeuron(0));
 		}
 		int outCount = 0;
-		for(Genome.NodeGene n : genome.nodes) {
+		for(NodeGene n : genome.nodes) {
 			//link up the output collectors to the bottom most hidden nodes
-			if(n.type == Genome.NodeGene.OUTPUT) {
+			if(n.type == NodeGene.OUTPUT) {
 				HiddenNeuron neu = new HiddenNeuron(n.id, new LogisticFunction());
 				neu.addChild(outputNeurons.get(outCount),1.0);
 				outCount++;
 				hiddenNeurons.put(n.id, neu);
 			//store away the input neurons
-			} else if(n.type == Genome.NodeGene.INPUT) {
+			} else if(n.type == NodeGene.INPUT) {
 				InputNeuron neu = new InputNeuron(n.id);
 				inputNeurons.add(neu);
-			} else if(n.type == Genome.NodeGene.HIDDEN) {
+			} else if(n.type == NodeGene.HIDDEN) {
 				HiddenNeuron neu = new HiddenNeuron(n.id, new LogisticFunction());
 				hiddenNeurons.put(n.id, neu);
 			}
 		}
 		
 		//Connect everything
-		for(Genome.ConnectionGene cg : genome.connections) {
+		for(ConnectionGene cg : genome.connections) {
 			if(cg.enabled) {
 				Neuron out = null;
 				if(hiddenNeurons.containsKey(cg.out))

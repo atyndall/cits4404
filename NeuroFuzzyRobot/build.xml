@@ -1,0 +1,18 @@
+<project>
+
+	<property name="srcdir" value="src"/>
+	<property name="bindir" value="bin"/>
+	<property name="robotdir" value="../robocode/robots"/>
+	
+	<target name="exportRobot">
+		<copy file="${bindir}/neuro/NeuroBot.class" todir="${robotdir}/neuro"/>
+		<copy todir="${robotdir}/neuroFuzzy">
+			<fileset dir="${bindir}/neuroFuzzy">
+				<include name="*.class"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="main" depends="exportRobot"/>
+	
+</project>
