@@ -1,22 +1,30 @@
-package neuroFuzzy;
+package neuroEvolution;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class NodeGene implements java.io.Serializable {
 	
-	final static int INPUT = 0;
-	final static int OUTPUT = 1;
-	final static int HIDDEN = 2;
+	public final static int INPUT = 0;
+	public final static int OUTPUT = 1;
+	public final static int HIDDEN = 2;
+	public final static int BIAS = 3;
 	
-	int id;
-	int type;
-	List<NodeGene> possibleOutputs;
+	public int id;
+	public int type;
+	public List<NodeGene> possibleOutputs;
 	
 	public NodeGene(int id, int type, List<NodeGene> possibleOutputs) {
 		this.id = id;
 		this.type = type;
-		this.possibleOutputs = possibleOutputs;
+		this.possibleOutputs = new ArrayList<NodeGene>(possibleOutputs);
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		NodeGene n = (NodeGene)o;
+		return this.id == n.id && this.type == n.type;
 	}
 	
 	public String toString() {
@@ -37,5 +45,11 @@ public class NodeGene implements java.io.Serializable {
 		}
 		return out;
 	}
+	
+	public void addOutput(NodeGene g) {
+		possibleOutputs.add(g);
+	}
+	
+	
 			
 }

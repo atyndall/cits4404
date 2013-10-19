@@ -25,12 +25,14 @@ public abstract class Neuron {
 		double out = f.calculate(input);
 		for(Neuron n : children) {
 			//We weight the outputs
+			//System.out.println(id + " sending " + out + " X " + weights.get(n.id));
 			n.receiveInput(out*weights.get(n.id));
 		}
 		input = new ArrayList<Double>();
 	}
 	
 	public void receiveInput(double in) {
+		//System.out.println(id + " receiving " + in);
 		input.add(in);
 	}
 	
@@ -38,6 +40,16 @@ public abstract class Neuron {
 		children.add(child);
 		weights.put(child.id, weight);
 		child.numInputs++;
+	}
+	
+	public String toString() {
+		return id + " : " + children.toString();
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		Neuron n2 = (Neuron)o;
+		return this.id == n2.id;
 	}
 	
 }

@@ -1,4 +1,4 @@
-package test;
+package neuroEvolution;
 
 import robocode.BattleResults;
 import robocode.control.events.BattleCompletedEvent;

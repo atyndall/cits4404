@@ -7,8 +7,13 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
+import neuroEvolution.ConnectionGene;
+import neuroEvolution.Genome;
+import neuroEvolution.NodeGene;
+
 public class NeuralNet {
 
+	Neuron biasNeuron;
 	List<Neuron> inputNeurons;
 	HashMap<Integer,Neuron> hiddenNeurons;
 	List<OutputNeuron> outputNeurons;
@@ -19,8 +24,8 @@ public class NeuralNet {
 		inputNeurons = new ArrayList<Neuron>();
 		hiddenNeurons = new HashMap<Integer,Neuron>();
 		//init output collectors
-		for(int i = 0; i < genome.numOutputs; i++) {
-			outputNeurons.add(new OutputNeuron(0));
+		for(int i = 1; i <= genome.numOutputs; i++) {
+			outputNeurons.add(new OutputNeuron(-i));
 		}
 		int outCount = 0;
 		for(NodeGene n : genome.nodes) {
@@ -37,6 +42,8 @@ public class NeuralNet {
 			} else if(n.type == NodeGene.HIDDEN) {
 				HiddenNeuron neu = new HiddenNeuron(n.id, new LogisticFunction());
 				hiddenNeurons.put(n.id, neu);
+			} else if(n.type == NodeGene.BIAS) {
+				biasNeuron = new BiasNeuron();
 			}
 		}
 		
@@ -46,7 +53,9 @@ public class NeuralNet {
 				Neuron out = null;
 				if(hiddenNeurons.containsKey(cg.out))
 					out = hiddenNeurons.get(cg.out);
-				else
+				else if(cg.out == biasNeuron.id) {
+					out = biasNeuron;
+				} else
 					out = getNeuron(cg.out,inputNeurons);
 				if(out == null) {
 					System.out.println("OUT: GOD DAMN IT");
@@ -55,6 +64,8 @@ public class NeuralNet {
 				Neuron in = null;
 				if(hiddenNeurons.containsKey(cg.in))
 					in = hiddenNeurons.get(cg.in);
+				else if(getNeuron(cg.in,inputNeurons) != null)
+					in = getNeuron(cg.in,inputNeurons);
 				else
 					in = getOutputNeuron(cg.in,outputNeurons);
 				if(in == null) {
@@ -84,11 +95,16 @@ public class NeuralNet {
 	public double[] output(double input[]) {
 		loadInput(input);
 		PriorityQueue<Neuron> queue = new PriorityQueue<Neuron>(11, new ProcessOrderingComparator());
+		//Do the bias first
+		biasNeuron.output();
 		queue.addAll(inputNeurons);
 		while(!queue.isEmpty()) {
 			Neuron n = queue.poll();
+			//System.out.println("Processing: " + n.id);
 			n.output();
-			queue.addAll(n.children);
+			for(Neuron c : n.children)
+				if(!queue.contains(c))
+					queue.add(c);
 		}
 		double[] out = new double[outputNeurons.size()];
 		for(int i = 0; i < out.length; i++) {
@@ -103,6 +119,15 @@ public class NeuralNet {
 		for(int i = 0; i < inputNeurons.size(); i++) {
 			inputNeurons.get(i).receiveInput(input[i]);
 		}
+	}
+	
+	public String toString() {
+		String out = "";
+		out += "INPUT NEURONS: \n";
+		for(Neuron n : inputNeurons) {
+			out += n.toString() + "\n";
+		}
+		return out;
 	}
 	
 }

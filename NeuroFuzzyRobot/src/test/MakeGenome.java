@@ -15,19 +15,17 @@ import robocode.control.RobotSpecification;
 
 
 import neuro.*;
-import neuroEvolution.BattleListener;
 import neuroEvolution.Genome;
-import neuroEvolution.RoboFitness;
 import neuroFuzzy.*;
 
-public class Test {
+public class MakeGenome {
 
-	
+	final static String genomeFile = "../robocode/robots/neuro/NeuroBot.data/genome.ser";
 	
 	public static void main(String[] args) {
-		Genome g = new Genome(NeuroBot.numInputs,NeuroBot.numOutputs,1,6,10,0.75);
+		Genome g = new Genome(NeuroBot.numInputs,NeuroBot.numOutputs,1,6,10,0.6);
 		try {
-			FileOutputStream fileOut = new FileOutputStream(RoboFitness.genomeFile);
+			FileOutputStream fileOut = new FileOutputStream(genomeFile);
 			ObjectOutputStream out = new ObjectOutputStream(fileOut);
 			out.writeObject(g);
 			out.close();
@@ -36,13 +34,5 @@ public class Test {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		RobocodeEngine eng = new RobocodeEngine(new File("../robocode"));
-		BattleListener reporter = new BattleListener();
-		eng.addBattleListener(reporter);
-		RobotSpecification[] robots = eng.getLocalRepository("neuro.NeuroBot*,sample.SittingDuck");
-		eng.runBattle(new BattleSpecification(10, new BattlefieldSpecification(), robots), true);
-		for(int i = 0; i < reporter.result.length; i++)
-			System.out.println(i + " " + reporter.result[i].getScore());
-		eng.close();
 	}
 }

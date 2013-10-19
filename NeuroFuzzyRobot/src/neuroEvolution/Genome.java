@@ -1,17 +1,40 @@
-package neuroFuzzy;
+package neuroEvolution;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import neuroFuzzy.Util;
+
 
 public class Genome implements java.io.Serializable {
 	
-	int numInputs;
-	int numOutputs;
-	List<NodeGene> nodes;
-	List<ConnectionGene> connections;
+	public int numInputs;
+	public int numOutputs;
+	public List<NodeGene> nodes;
+	public List<ConnectionGene> connections;
+	public double fit;
+	public int nodeNum = 1;
+	public static int globalInnov = 1;
 	
+	public double getFit() {
+		return fit;
+	}
+
+	public void setFit(double fit) {
+		this.fit = fit;
+	}
+
+	
+	public Genome(int numInputs, int numOutputs, List<NodeGene> nodes,
+			List<ConnectionGene> connections, double fit) {
+		this.numInputs = numInputs;
+		this.numOutputs = numOutputs;
+		this.nodes = new ArrayList<NodeGene>(nodes);
+		this.connections = new ArrayList<ConnectionGene>(connections);
+		this.fit = fit;
+	}
+
 	public Genome(int numInputs, int numOutputs, int maxHiddenLayers, int minHiddenNodes, int maxHiddenNodes, double connectionChance) {
 		
 		/*
@@ -22,7 +45,7 @@ public class Genome implements java.io.Serializable {
 		this.numOutputs = numOutputs;
 		
 		nodes = new ArrayList<NodeGene>();
-		int nodeNum = 1;
+
 		
 		//Gen nodes from output to input
 		int numHiddenLayers = Util.uniformInt(1, maxHiddenLayers);
@@ -40,7 +63,7 @@ public class Genome implements java.io.Serializable {
 		//For now we won't initialise layer skipping neurons
 		int numHiddenNodes = Util.uniformInt(minHiddenNodes, maxHiddenNodes);
 		int nodeCount = 0;
-		for(int i = 0; i < numLayers; i++) {
+		for(int i = 0; i < numHiddenLayers; i++) {
 			List<NodeGene> newLastLayer = new ArrayList<NodeGene>();
 			int nodesThisLayer = 0;
 			if(i == numLayers-1)
@@ -63,27 +86,55 @@ public class Genome implements java.io.Serializable {
 			nodeNum++;
 		}
 		
+		//Make the bias neuron
+		NodeGene bias = new NodeGene(0, NodeGene.BIAS, new ArrayList<NodeGene>(nodes));
+		
+		
 		//Make the connections
 		connections = new ArrayList<ConnectionGene>();
 		//Every neuron needs at least one output, except the output layer
 		for(NodeGene n : nodes) {
 			System.out.println("DOING CONNECTIONS FOR " + n.toString());
+			//always connect the bias unless an input
+			if(n.type != NodeGene.INPUT)
+				connections.add(new ConnectionGene(bias.id,n.id,Util.uniformDouble(0, 1),true,1));
 			for(int i = 0; i < n.possibleOutputs.size(); i++) {
 				if(Util.uniformDouble(0, 1) < connectionChance) {
 					NodeGene in = n.possibleOutputs.get(i);
-					ConnectionGene g = new ConnectionGene(n.id,in.id,Util.uniformDouble(0,1),true,1);
-					connections.add(g);
+					addConnection(n.id,in.id,Util.uniformDouble(0,1));
 				}
 			}
 		}
+		nodes.add(bias);
 	}
 	
-	private static NodeGene select(List<NodeGene> genes) {
-		return genes.get(Util.uniformInt(0, genes.size()-1));
+	public Genome clone() {
+		return new Genome(numInputs,numOutputs,nodes,connections,fit);
 	}
 	
+	public void addConnection(int out, int in, double weight) {
+		ConnectionGene g = new ConnectionGene(out,in,weight,true,globalInnov);
+		System.out.println(g);
+		globalInnov++;
+		connections.add(g);
+	}
 	
+	public void addNode(int type, List<NodeGene> possibleOutputs) {
+		nodes.add(new NodeGene(nodeNum+1, type, possibleOutputs));
+		nodeNum++;
+	}
 	
+	public void addNode(NodeGene n) {
+		nodes.add(n);
+		nodeNum = n.id;
+	}
 	
+	public NodeGene getNode(int id) {
+		for(NodeGene n : nodes) {
+			if(id == n.id)
+				return n;
+		}
+		return null;
+	}
 	
 }
