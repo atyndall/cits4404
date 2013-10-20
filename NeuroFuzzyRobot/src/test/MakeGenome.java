@@ -23,7 +23,7 @@ public class MakeGenome {
 	final static String genomeFile = "../robocode/robots/neuro/NeuroBot.data/genome.ser";
 	
 	public static void main(String[] args) {
-		Genome g = new Genome(NeuroBot.numInputs,NeuroBot.numOutputs,1,6,10,0.6);
+		Genome g = new Genome(NeuroBot.numInputs,NeuroBot.numOutputs,2,5,10,0.75);
 		try {
 			FileOutputStream fileOut = new FileOutputStream(genomeFile);
 			ObjectOutputStream out = new ObjectOutputStream(fileOut);

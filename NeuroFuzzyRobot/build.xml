@@ -6,11 +6,17 @@
 	
 	<target name="exportRobot">
 		<copy file="${bindir}/neuro/NeuroBot.class" todir="${robotdir}/neuro"/>
+		<copy file="${bindir}/neuro/ScanningBot.class" todir="${robotdir}/neuro"/>
 		<copy todir="${robotdir}/neuroFuzzy">
 			<fileset dir="${bindir}/neuroFuzzy">
 				<include name="*.class"/>
 			</fileset>
 		</copy>
+		<copy todir="${robotdir}/neuroEvolution">
+					<fileset dir="${bindir}/neuroEvolution">
+						<include name="*.class"/>
+					</fileset>
+				</copy>
 	</target>
 	
 	<target name="main" depends="exportRobot"/>

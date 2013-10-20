@@ -48,10 +48,11 @@ public class Genome implements java.io.Serializable {
 
 		
 		//Gen nodes from output to input
-		int numHiddenLayers = Util.uniformInt(1, maxHiddenLayers);
-		int numLayers = numHiddenLayers + 2;
+		
 		List<NodeGene> lastLayer = new ArrayList<NodeGene>();
 		//Make the output layer
+		//We reserve the lower numbers for the input and output nodes
+		nodeNum += numInputs;
 		for(int i = 0; i < numOutputs; i++) {
 			NodeGene n =  new NodeGene(nodeNum, NodeGene.OUTPUT, new ArrayList<NodeGene>());
 			nodes.add(n);
@@ -61,29 +62,34 @@ public class Genome implements java.io.Serializable {
 		
 		//Make the hidden layers
 		//For now we won't initialise layer skipping neurons
+		int numHiddenLayers = Util.uniformInt(1, maxHiddenLayers);
 		int numHiddenNodes = Util.uniformInt(minHiddenNodes, maxHiddenNodes);
+		System.out.println("# Hidden Nodes = " + numHiddenNodes);
 		int nodeCount = 0;
 		for(int i = 0; i < numHiddenLayers; i++) {
 			List<NodeGene> newLastLayer = new ArrayList<NodeGene>();
 			int nodesThisLayer = 0;
-			if(i == numLayers-1)
+			if(i == numHiddenLayers-1)
 				nodesThisLayer = numHiddenNodes-nodeCount;
+			else if(numHiddenNodes-nodeCount <= 0)
+				nodesThisLayer = 0;
 			else
-				nodesThisLayer = Math.min(numHiddenNodes-nodeCount, Util.uniformInt(2, numHiddenNodes-nodeCount));
+				Util.uniformInt(1, numHiddenNodes-nodeCount);
 			for(int j = 0; j < nodesThisLayer; j++) {
 				NodeGene n = new NodeGene(nodeNum, NodeGene.HIDDEN, lastLayer);
 				nodes.add(n);
 				newLastLayer.add(n);
 				nodeNum++;
 			}
+			nodeCount += nodesThisLayer;
 			lastLayer = newLastLayer;
 		}
 		
 		//Make the input layer
-		for(int i = 0; i < numInputs; i++) {
-			NodeGene n = new NodeGene(nodeNum, NodeGene.INPUT, lastLayer);
+		//We use the iteration number here as we have already reserved these ids
+		for(int i = 1; i <= numInputs; i++) {
+			NodeGene n = new NodeGene(i, NodeGene.INPUT, lastLayer);
 			nodes.add(n);
-			nodeNum++;
 		}
 		
 		//Make the bias neuron
@@ -135,6 +141,22 @@ public class Genome implements java.io.Serializable {
 				return n;
 		}
 		return null;
+	}
+	
+	public List<NodeGene> getInputNodes() {
+		List<NodeGene> inputs = new ArrayList<NodeGene>();
+		for(NodeGene n : nodes)
+			if(n.type == NodeGene.INPUT)
+				inputs.add(n);
+		return inputs;
+	}
+
+	public List<NodeGene> getOutputNodes() {
+		List<NodeGene> inputs = new ArrayList<NodeGene>();
+		for(NodeGene n : nodes)
+			if(n.type == NodeGene.OUTPUT)
+				inputs.add(n);
+		return inputs;
 	}
 	
 }

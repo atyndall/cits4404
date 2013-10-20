@@ -8,7 +8,7 @@ import java.util.Random;
 public class NEATRecombiner implements Recombination {
 
 	static double enableChance = 0.1;
-	
+
 	@Override
 	public Genome recombine(Genome p1, Genome p2) {
 		ConnectionGene[] c1 = new ConnectionGene[p1.connections.size()];
@@ -27,33 +27,62 @@ public class NEATRecombiner implements Recombination {
 		while(i < c1.length && j < c2.length) {
 			ConnectionGene toAdd = null;
 			if(c1[i].innov == c2[j].innov) {
-				if(rand.nextBoolean())
+				if(rand.nextBoolean()) {
 					newConns.add(c1[i]);
-				else
+					//We get the nodes from that parent too
+					addNode(nodes,p1.getNode(c1[i].in));
+					addNode(nodes,p1.getNode(c1[i].out));
+				}else {
 					newConns.add(c2[j]);
+					addNode(nodes,p2.getNode(c2[j].in));
+					addNode(nodes,p2.getNode(c2[j].out));
+				}
 				i++;
 				j++;
 			//if c2 is missing some genes
 			} else if(c1[i].innov < c2[j].innov) {
-				if(p1.fit >= p2.fit)
+				if(p1.fit >= p2.fit) {
 					newConns.add(c1[i]);
+					addNode(nodes,p1.getNode(c1[i].in));
+					addNode(nodes,p1.getNode(c1[i].out));
+				}
 				i++;
 			//if c1 is missing some genes
 			} else {
-				if(p2.fit >= p1.fit)
+				if(p2.fit >= p1.fit) {
 					newConns.add(c2[j]);
+					addNode(nodes,p2.getNode(c2[j].in));
+					addNode(nodes,p2.getNode(c2[j].out));
+				}
 				j++;
 			}
 		}
 		//Do any excess genes
 		while(i < c1.length && p1.fit >= p2.fit) {
 			newConns.add(c1[i]);
+			addNode(nodes,p1.getNode(c1[i].in));
+			addNode(nodes,p1.getNode(c1[i].out));
 		}
 		while(j < c2.length && p2.fit >= p1.fit) {
 			newConns.add(c2[j]);
+			addNode(nodes,p2.getNode(c2[j].in));
+			addNode(nodes,p2.getNode(c2[j].out));
 		}
+		//Make sure we add all the input and output nodes
+		//Either genome should have all the correct nodes
+		List<NodeGene> inputs = p1.getInputNodes();
+		List<NodeGene> outputs = p1.getOutputNodes();
+		for(NodeGene n : inputs)
+			addNode(nodes,n);
+		for(NodeGene n : outputs)
+			addNode(nodes,n);
 		
-		return null;
+		return new Genome(p1.numInputs,p2.numOutputs,nodes,newConns,0);
+	}
+	
+	private void addNode(List<NodeGene> nodes, NodeGene g) {
+		if(!nodes.contains(g))
+			nodes.add(g);
 	}
 
 }

@@ -13,7 +13,7 @@ public class ScanningBot extends AdvancedRobot {
 	public void run() {
 	    // ...
 	 
-	    turnRadarRightRadians(Double.POSITIVE_INFINITY);
+	    turnGunRightRadians(Double.POSITIVE_INFINITY);
 	    do {
 	        // Check for new targets.
 	        // Only necessary for Narrow Lock because sometimes our radar is already
@@ -31,7 +31,7 @@ public class ScanningBot extends AdvancedRobot {
 	        // Subtract current radar heading to get turn required
 	        - getRadarHeadingRadians();
 	 
-	    setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
+	    setTurnGunRightRadians(Utils.normalRelativeAngle(radarTurn)*2.0);
 	 
 	    // ...
 	}

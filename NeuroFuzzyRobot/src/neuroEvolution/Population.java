@@ -39,13 +39,9 @@ public class Population {
 		while(i < numToGen) {
 			int n1 = rand.nextInt(newGenes.size());
 			int n2 = rand.nextInt(newGenes.size());
-			Genome[] children = r.recombine(newGenes.get(n1), newGenes.get(n2));
-			int j = 0;
-			while(i < numToGen && j < 2) {
-				genes.add(children[j]);
-				i++;
-				j++;
-			}
+			Genome child = r.recombine(newGenes.get(n1), newGenes.get(n2));
+			genes.add(child);
+			i++;
 		}
 		
 	}
@@ -57,6 +53,17 @@ public class Population {
 			totalFitness += fit;
 			g.setFit(fit);
 		}
+		System.out.println();
+	}
+	
+	public Genome getBest() {
+		double bestFit = Double.MIN_VALUE;
+		Genome best = null;
+		for(Genome g : genes) {
+			if(g.fit > bestFit)
+				best = g;
+		}
+		return best;
 	}
 	
 	

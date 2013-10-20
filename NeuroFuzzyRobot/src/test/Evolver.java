@@ -13,6 +13,7 @@ import neuroEvolution.BattleListener;
 import neuroEvolution.Fitness;
 import neuroEvolution.Genome;
 import neuroEvolution.NEATMutator;
+import neuroEvolution.NEATRecombiner;
 import neuroEvolution.Population;
 import neuroEvolution.RoboFitness;
 import neuroEvolution.Selection;
@@ -25,21 +26,31 @@ import robocode.control.RobotSpecification;
 public class Evolver {
 	
 	public static void main(String[] args) {
-		Population pop = new Population(50,NeuroBot.numInputs,NeuroBot.numOutputs,1,6,10,0.75);
+		Population pop = new Population(10,NeuroBot.numInputs,NeuroBot.numOutputs,2,10,20,0.8);
 		RobocodeEngine eng = new RobocodeEngine(new File("../robocode"));
-		Fitness f = new RoboFitness(eng,"sample.SittingDuck",10);
+		Fitness f = new RoboFitness(eng,"sample.Walls",1);
 		
-		Selection sel = new TournamentSelection(25,0.2,50);
+		Selection sel = new TournamentSelection(2,0.65,10);
 		
 		pop.calculateFitness(f);
 		int numIter = 5;
+		double bestFit = Double.MIN_VALUE;
+		Genome bestGenome = null;
 		for(int i = 0; i < numIter; i++) {
 			Vector<Genome> newGenes = sel.select(pop);
+			//pop.generate(newGenes, new NEATRecombiner());
 			pop = NEATMutator.mutate(newGenes,0.1);
 			pop.calculateFitness(f);
+			Genome best = pop.getBest();
+			if(best.fit > bestFit) {
+				bestFit = best.fit;
+				bestGenome = best;
+			}
 		}
-		System.out.println("Best Fit: " + bestFitness(pop));
-		System.out.println("Average Fit: " + averageFitness(pop));
+		System.out.println("Best Fit: " + bestFit);
+		saveGenome(bestGenome,"genome.ser");
+		//System.out.println("Best Fit: " + bestFitness(pop));
+		//System.out.println("Average Fit: " + averageFitness(pop));
 	}
 	
 	public static double averageFitness(Population pop) {
@@ -59,5 +70,18 @@ public class Evolver {
 				bestFitness = fit;
 		}
 		return bestFitness;
+	}
+	
+	public static void saveGenome(Genome g, String genomeFile) {
+		try {
+			FileOutputStream fileOut = new FileOutputStream(genomeFile);
+			ObjectOutputStream out = new ObjectOutputStream(fileOut);
+			out.writeObject(g);
+			out.close();
+			fileOut.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
