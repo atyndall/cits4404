@@ -31,7 +31,7 @@ public class NeuralNet {
 		for(NodeGene n : genome.nodes) {
 			//link up the output collectors to the bottom most hidden nodes
 			if(n.type == NodeGene.OUTPUT) {
-				HiddenNeuron neu = new HiddenNeuron(n.id, new LogisticFunction());
+				HiddenNeuron neu = new HiddenNeuron(n.id, new GaussianActivation(0, 0.5));
 				neu.addChild(outputNeurons.get(outCount),1.0);
 				outCount++;
 				hiddenNeurons.put(n.id, neu);
@@ -40,7 +40,7 @@ public class NeuralNet {
 				InputNeuron neu = new InputNeuron(n.id);
 				inputNeurons.add(neu);
 			} else if(n.type == NodeGene.HIDDEN) {
-				HiddenNeuron neu = new HiddenNeuron(n.id, new LogisticFunction());
+				HiddenNeuron neu = new HiddenNeuron(n.id, new GaussianActivation(0,0.5));
 				hiddenNeurons.put(n.id, neu);
 			} else if(n.type == NodeGene.BIAS) {
 				biasNeuron = new BiasNeuron();

@@ -31,9 +31,14 @@ public class Population {
 			
 	}	
 		
+	public void mutate(Mutator m) {
+		genes = m.mutate(genes);
+	}
+	
 	public void generate(Vector<Genome> newGenes, Recombination r) {
 		Random rand = new Random();
 		genes = new Vector<Genome>(newGenes);
+		genes.addAll(newGenes);
 		int numToGen = size - newGenes.size();
 		int i = 0;
 		while(i < numToGen) {
@@ -60,10 +65,19 @@ public class Population {
 		double bestFit = Double.MIN_VALUE;
 		Genome best = null;
 		for(Genome g : genes) {
-			if(g.fit > bestFit)
+			if(g.fit > bestFit) {
+				bestFit = g.fit;
 				best = g;
+			}
 		}
 		return best;
+	}
+	
+	public double[] getScores() {
+		double[] out = new double[genes.size()];
+		for(int i = 0; i < genes.size(); i++)
+			out[i] = genes.get(i).fit;
+		return out;
 	}
 	
 	

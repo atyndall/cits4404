@@ -64,8 +64,10 @@ public class Genome implements java.io.Serializable {
 		//For now we won't initialise layer skipping neurons
 		int numHiddenLayers = Util.uniformInt(1, maxHiddenLayers);
 		int numHiddenNodes = Util.uniformInt(minHiddenNodes, maxHiddenNodes);
+		System.out.println("# Hidden Layers = " + numHiddenLayers);
 		System.out.println("# Hidden Nodes = " + numHiddenNodes);
 		int nodeCount = 0;
+		List<NodeGene> hiddenNodes = new ArrayList<NodeGene>();
 		for(int i = 0; i < numHiddenLayers; i++) {
 			List<NodeGene> newLastLayer = new ArrayList<NodeGene>();
 			int nodesThisLayer = 0;
@@ -74,21 +76,22 @@ public class Genome implements java.io.Serializable {
 			else if(numHiddenNodes-nodeCount <= 0)
 				nodesThisLayer = 0;
 			else
-				Util.uniformInt(1, numHiddenNodes-nodeCount);
+				nodesThisLayer = Util.uniformInt(1, numHiddenNodes-nodeCount);
 			for(int j = 0; j < nodesThisLayer; j++) {
 				NodeGene n = new NodeGene(nodeNum, NodeGene.HIDDEN, lastLayer);
 				nodes.add(n);
 				newLastLayer.add(n);
 				nodeNum++;
+				hiddenNodes.add(n);
 			}
 			nodeCount += nodesThisLayer;
-			lastLayer = newLastLayer;
+			lastLayer.addAll(newLastLayer);
 		}
 		
 		//Make the input layer
 		//We use the iteration number here as we have already reserved these ids
 		for(int i = 1; i <= numInputs; i++) {
-			NodeGene n = new NodeGene(i, NodeGene.INPUT, lastLayer);
+			NodeGene n = new NodeGene(i, NodeGene.INPUT, hiddenNodes);
 			nodes.add(n);
 		}
 		
@@ -100,14 +103,14 @@ public class Genome implements java.io.Serializable {
 		connections = new ArrayList<ConnectionGene>();
 		//Every neuron needs at least one output, except the output layer
 		for(NodeGene n : nodes) {
-			System.out.println("DOING CONNECTIONS FOR " + n.toString());
+			//System.out.println("DOING CONNECTIONS FOR " + n.toString());
 			//always connect the bias unless an input
 			if(n.type != NodeGene.INPUT)
-				connections.add(new ConnectionGene(bias.id,n.id,Util.uniformDouble(0, 1),true,1));
+				connections.add(new ConnectionGene(bias.id,n.id,Util.uniformDouble(-1, 1),true,1));
 			for(int i = 0; i < n.possibleOutputs.size(); i++) {
 				if(Util.uniformDouble(0, 1) < connectionChance) {
 					NodeGene in = n.possibleOutputs.get(i);
-					addConnection(n.id,in.id,Util.uniformDouble(0,1));
+					addConnection(n.id,in.id,Util.uniformDouble(-1,1));
 				}
 			}
 		}
@@ -115,12 +118,14 @@ public class Genome implements java.io.Serializable {
 	}
 	
 	public Genome clone() {
-		return new Genome(numInputs,numOutputs,nodes,connections,fit);
+		Genome g = new Genome(numInputs,numOutputs,nodes,connections,0);
+		g.nodeNum = this.nodeNum;
+		return g;
 	}
 	
 	public void addConnection(int out, int in, double weight) {
 		ConnectionGene g = new ConnectionGene(out,in,weight,true,globalInnov);
-		System.out.println(g);
+		//System.out.println(g);
 		globalInnov++;
 		connections.add(g);
 	}
@@ -132,7 +137,7 @@ public class Genome implements java.io.Serializable {
 	
 	public void addNode(NodeGene n) {
 		nodes.add(n);
-		nodeNum = n.id;
+		nodeNum = n.id+1;
 	}
 	
 	public NodeGene getNode(int id) {
@@ -157,6 +162,23 @@ public class Genome implements java.io.Serializable {
 			if(n.type == NodeGene.OUTPUT)
 				inputs.add(n);
 		return inputs;
+	}
+	
+	public NodeGene getBiasNode() {
+		for(NodeGene n : nodes)
+			if(n.type == NodeGene.BIAS)
+				return n;
+		return null;
+	}
+	
+	public String toString() {
+		String out = "";
+		out += "Nodes:\n";
+		for(NodeGene n : nodes)
+			out += n.toString() + "\n";
+		for(ConnectionGene g : connections)
+			out += g.toString() + "\n";
+		return out;
 	}
 	
 }

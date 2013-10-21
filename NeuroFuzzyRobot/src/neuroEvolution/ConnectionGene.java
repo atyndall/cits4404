@@ -24,7 +24,7 @@ public class ConnectionGene implements java.io.Serializable, java.lang.Comparabl
 	}
 	
 	public String toString() {
-		return out + "->" + in;
+		return out + "->"  + in;
 	}
 	
 	public void disable() {

@@ -8,6 +8,10 @@ import java.io.PrintStream;
 
 import robocode.AdvancedRobot;
 import robocode.BattleRules;
+import robocode.Event;
+import robocode.HitByBulletEvent;
+import robocode.HitRobotEvent;
+import robocode.HitWallEvent;
 import robocode.RobocodeFileOutputStream;
 import robocode.Robot;
 import robocode.RobotStatus;
@@ -22,10 +26,10 @@ import neuroFuzzy.*;
 
 public class NeuroBot extends AdvancedRobot {
 
-	final static double maxAhead = 50;
+	final static double maxAhead = 100;
 	final static double radarTurnRate = Rules.RADAR_TURN_RATE_RADIANS;
-	public final static int numInputs = 10;
-	public final static int numOutputs = 3;
+	public final static int numInputs = 13;
+	public final static int numOutputs = 4;
 	
 	NeuralNet nn;
 	double[] input;
@@ -40,7 +44,8 @@ public class NeuroBot extends AdvancedRobot {
 	 * an initialiser full of stuff that we have to do after the robot has been constructed
 	 */
 	public void init() {
-		//setAdjustGunForRobotTurn(true);
+		setAdjustRadarForGunTurn(true);
+		setAdjustRadarForRobotTurn(true);
 		setEventPriority("ScannedRobotEvent",99);
 		setEventPriority("StatusEvent",98);
 		nn = getControl();
@@ -72,20 +77,20 @@ public class NeuroBot extends AdvancedRobot {
 	
 	@Override
 	public void run() {
-		out.println("Starting a run");
 		if(nn == null)
 			init();
 		do {
-		
+			
+			processExtraInputs();
 			//scan();
 			printDoubleArray(input);
 			double[] output = nn.output(input);
 			printDoubleArray(output);
 			setFire(scaleUp(output[0],Rules.MIN_BULLET_POWER,Rules.MAX_BULLET_POWER));
 			setAhead(scaleUp(output[1],-maxAhead,maxAhead)); //negative means back
-			//double gunTurn = scaleUp(output[2],-45,45);
-			double roboTurn = scaleUp(output[2],-180,180);
-			//setTurnGunLeft(gunTurn); //from -180 to 180 neg values means turn right
+			double gunTurn = scaleUp(output[2],-180,180);
+			double roboTurn = scaleUp(output[3],-180,180);
+			setTurnGunLeft(gunTurn); //from -180 to 180 neg values means turn right
 			setTurnLeft(roboTurn);
 			//printDoubleArray(output);
 			
@@ -94,12 +99,13 @@ public class NeuroBot extends AdvancedRobot {
 			//execute();
 			
 			
-			//input = new double[numInputs];
+			
 		
-		
-			if(getGunTurnRemaining() == 0.0)
-				setTurnGunRightRadians(Double.POSITIVE_INFINITY);
+			//radar control
+			if(getRadarTurnRemaining() == 0.0)
+				setTurnRadarRightRadians(Double.POSITIVE_INFINITY);
 			execute();
+			
 		} while(true);
 	}
 	
@@ -115,21 +121,36 @@ public class NeuroBot extends AdvancedRobot {
 	private void printBehaviour() {
 		out.println("Gun Turn Remaining " + getGunTurnRemaining());
 		out.println("Turn Remaining " + getTurnRemaining());
+		out.println("Distance Remaining " + getDistanceRemaining());
 	}
 	
+	//controlSignal between -1 and 1
 	private double scaleUp(double controlSignal, double min, double max) {
-		if(controlSignal > 0)
-			return min + controlSignal*(max - min);
-		else
-			return 0;
+		return min + (max - min)/2 + controlSignal*(max - min)/2;
 	}
 	
 	private double scaleDown(double input, double min, double max) {
 		return input/(max - min);
 	}
 	 
+	public void processExtraInputs() {
+		input[10] = 0;
+		input[11] = 0;
+		input[12] = 0;
+		for(Event e : getAllEvents()) {
+			if(e instanceof HitRobotEvent) {
+				input[10] = 1;
+			} else if(e instanceof HitWallEvent) {
+				input[11] = 1;
+			} else if(e instanceof HitByBulletEvent) {
+				input[12] = 1;
+			}
+		}
+	}
+	
 	public void onStatus(StatusEvent e) {
 		out.println("Getting My Status");
+		
 		RobotStatus status = e.getStatus();
 		input[0] = scaleDown(status.getEnergy(),0,100);
 		input[1] = scaleDown(status.getGunHeading(),0,360);
@@ -142,14 +163,14 @@ public class NeuroBot extends AdvancedRobot {
 	}
 	
 	public void onScannedRobot(ScannedRobotEvent e) {
-		
+		//input = new double[numInputs];
 		double radarTurn =
 	        // Absolute bearing to target
 	        getHeadingRadians() + e.getBearingRadians()
 	        // Subtract current radar heading to get turn required
-	        - getGunHeadingRadians();
+	        - getRadarHeadingRadians();
 	 
-	    setTurnGunRightRadians(Utils.normalRelativeAngle(radarTurn));
+	    setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
 		
 		out.println("Starting a scan");
 		input[6] = scaleDown(e.getBearing(),0,360);

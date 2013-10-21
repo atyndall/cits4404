@@ -25,15 +25,14 @@ public class NEATRecombiner implements Recombination {
 		//Might be better to recreate all the nodes out of the connections
 		List<NodeGene> nodes = new ArrayList<NodeGene>();
 		while(i < c1.length && j < c2.length) {
-			ConnectionGene toAdd = null;
 			if(c1[i].innov == c2[j].innov) {
 				if(rand.nextBoolean()) {
-					newConns.add(c1[i]);
+					addConnection(newConns,c1[i]);
 					//We get the nodes from that parent too
 					addNode(nodes,p1.getNode(c1[i].in));
 					addNode(nodes,p1.getNode(c1[i].out));
 				}else {
-					newConns.add(c2[j]);
+					addConnection(newConns,c2[j]);
 					addNode(nodes,p2.getNode(c2[j].in));
 					addNode(nodes,p2.getNode(c2[j].out));
 				}
@@ -42,7 +41,7 @@ public class NEATRecombiner implements Recombination {
 			//if c2 is missing some genes
 			} else if(c1[i].innov < c2[j].innov) {
 				if(p1.fit >= p2.fit) {
-					newConns.add(c1[i]);
+					addConnection(newConns,c1[i]);
 					addNode(nodes,p1.getNode(c1[i].in));
 					addNode(nodes,p1.getNode(c1[i].out));
 				}
@@ -50,7 +49,7 @@ public class NEATRecombiner implements Recombination {
 			//if c1 is missing some genes
 			} else {
 				if(p2.fit >= p1.fit) {
-					newConns.add(c2[j]);
+					addConnection(newConns,c2[j]);
 					addNode(nodes,p2.getNode(c2[j].in));
 					addNode(nodes,p2.getNode(c2[j].out));
 				}
@@ -59,14 +58,16 @@ public class NEATRecombiner implements Recombination {
 		}
 		//Do any excess genes
 		while(i < c1.length && p1.fit >= p2.fit) {
-			newConns.add(c1[i]);
+			addConnection(newConns,c1[i]);
 			addNode(nodes,p1.getNode(c1[i].in));
 			addNode(nodes,p1.getNode(c1[i].out));
+			i++;
 		}
 		while(j < c2.length && p2.fit >= p1.fit) {
-			newConns.add(c2[j]);
+			addConnection(newConns,c2[j]);
 			addNode(nodes,p2.getNode(c2[j].in));
 			addNode(nodes,p2.getNode(c2[j].out));
+			j++;
 		}
 		//Make sure we add all the input and output nodes
 		//Either genome should have all the correct nodes
@@ -77,12 +78,26 @@ public class NEATRecombiner implements Recombination {
 		for(NodeGene n : outputs)
 			addNode(nodes,n);
 		
+		//Don't forget to add in the bias neuron again!
+		//Just to make sure although they should be
+		//picked up by the previous checks
+		if(p1.fit > p2.fit) {
+			addNode(nodes,p1.getBiasNode());
+		} else {
+			addNode(nodes,p2.getBiasNode());
+		}
+		
 		return new Genome(p1.numInputs,p2.numOutputs,nodes,newConns,0);
 	}
 	
 	private void addNode(List<NodeGene> nodes, NodeGene g) {
 		if(!nodes.contains(g))
 			nodes.add(g);
+	}
+	
+	private void addConnection(List<ConnectionGene> conns, ConnectionGene g) {
+		if(!conns.contains(g))
+			conns.add(g);
 	}
 
 }

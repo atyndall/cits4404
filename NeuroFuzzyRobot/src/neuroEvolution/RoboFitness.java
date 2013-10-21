@@ -42,7 +42,7 @@ public class RoboFitness implements Fitness {
 		eng.addBattleListener(reporter);
 		RobotSpecification[] robots = eng.getLocalRepository("neuro.NeuroBot*," + testRobo);
 		eng.runBattle(new BattleSpecification(numRounds, new BattlefieldSpecification(), robots), true);
-		System.out.println(reporter.result[0].getScore());
+		//System.out.println(reporter.result[0].getScore());
 		return reporter.result[0].getScore();
 	}
 

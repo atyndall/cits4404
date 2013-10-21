@@ -36,6 +36,8 @@ public class NodeGene implements java.io.Serializable {
 			out += "OUTPUT ";
 		} else if(type == HIDDEN) {
 			out += "HIDDEN ";
+		} else if(type == BIAS) {
+			out += "BIAS ";
 		}
 		for(int i = 0; i < possibleOutputs.size(); i++) {
 			NodeGene n = possibleOutputs.get(i);

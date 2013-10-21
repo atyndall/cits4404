@@ -8,9 +8,16 @@ import java.util.Vector;
 
 import neuroFuzzy.Util;
 
-public class NEATMutator {
+public class NEATMutator implements Mutator {
 
-	public static Population mutate(Vector<Genome> pop, double mutationRate) {
+	double mutationRate;
+	
+	public NEATMutator(double mutationRate) {
+		super();
+		this.mutationRate = mutationRate;
+	}
+
+	public Vector<Genome> mutate(Vector<Genome> pop) {
 		Random rand = new Random();
 		Vector<Genome> newGenes = new Vector<Genome>(pop.size());
 		for(Genome g : pop) {
@@ -22,7 +29,7 @@ public class NEATMutator {
 			else
 				newGenes.add(g);
 		}
-		return new Population(newGenes);
+		return newGenes;
 	}
 	
 	public static Genome addNode(Genome g) {
@@ -33,17 +40,17 @@ public class NEATMutator {
 		NodeGene outNode = g.getNode(c.out);
 		NodeGene inNode = g.getNode(c.in);
 		Genome outGene = g.clone();
-		//inherits the downstream nodes outputs
-		NodeGene newNode = new NodeGene(outGene.nodeNum+1,NodeGene.HIDDEN,inNode.possibleOutputs);	
-		//Anything that could output to the downstream node can now also output to new node
-		for(NodeGene ng : g.nodes) {
+		//inherits the upstream node's outputs
+		NodeGene newNode = new NodeGene(outGene.nodeNum,NodeGene.HIDDEN,outNode.possibleOutputs);	
+		//Anything that could output to the upstream node can now also output to new node
+		for(NodeGene ng : outGene.nodes) {
 			if(ng.possibleOutputs.contains(inNode))
 				ng.addOutput(newNode);
 		}
 		//Add and connect node
 		outGene.addNode(newNode);
-		outGene.addConnection(outNode.id, newNode.id, neuroFuzzy.Util.uniformDouble(0, 1));
-		outGene.addConnection(newNode.id, inNode.id, neuroFuzzy.Util.uniformDouble(0, 1));
+		outGene.addConnection(outNode.id, newNode.id, neuroFuzzy.Util.uniformDouble(-1, 1));
+		outGene.addConnection(newNode.id, inNode.id, neuroFuzzy.Util.uniformDouble(-1, 1));
 		return outGene;
 	}
 	
@@ -57,7 +64,7 @@ public class NEATMutator {
 		List<NodeGene> possibleOutputs = scramble(n.possibleOutputs);
 		for(NodeGene node : possibleOutputs) {
 			if(!outputs.contains(node.id)) {
-				outGene.addConnection(n.id, node.id, neuroFuzzy.Util.uniformDouble(0,1));
+				outGene.addConnection(n.id, node.id, neuroFuzzy.Util.uniformDouble(-1,1));
 				return outGene;
 			}	
 		}
