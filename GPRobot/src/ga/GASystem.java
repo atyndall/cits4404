@@ -43,11 +43,16 @@ public class GASystem {
 		Random rnd = new Random();
 		List<Node> nlist1 = t1.getNodeList();
 		List<Node> nlist2 = t2.getNodeList();
-		int i1 = rnd.nextInt(nlist1.size());
-		int i2 = rnd.nextInt(nlist2.size());
 		
-		Node n1 = nlist1.get(i1);
-		Node n2 = nlist2.get(i2);
+		int i1, i2;
+		Node n1, n2;
+		do {
+			i1 = rnd.nextInt(nlist1.size());
+			i2 = rnd.nextInt(nlist2.size());
+			
+			n1 = nlist1.get(i1);
+			n2 = nlist2.get(i2);
+		} while (n1.getParent() == null || n2.getParent() == null);
 		
 		int n1swap = -1;
 		int n2swap = -1;
@@ -127,11 +132,14 @@ public class GASystem {
 	}
 	
 	public List<GATree> evolve(int generations) {
+		System.out.println("Generating random trees");
 		List<GATree> trees = makeRandomTrees(100);
 		
 		for (int x = 0; x < generations; x++) {
+			System.out.println("GENERATION " + x);
 			Collections.shuffle(trees);
 			
+			System.out.println("Applying mutations");
 			for (GATree t : trees) {
 				assert(t != null);
 				if (rnd.nextDouble() > 0.95) {
@@ -139,11 +147,19 @@ public class GASystem {
 				}
 			}
 			
-			for (int i = 0; i < trees.size(); i += 2) {
+			System.out.println("Applying crossover");
+			int max = trees.size();
+			if (trees.size() % 2 != 0) {
+				max -= 1;
+			}
+			for (int i = 0; i < max; i += 2) {
 				crossover(trees.get(i), trees.get(i+1));
 			}
 			
+			System.out.println("Applying fitness function");
 			trees = rouletteWheel(getFitnesses(trees));
+			
+			assert(trees.size() >= 10);
 		}
 		
 		return trees;

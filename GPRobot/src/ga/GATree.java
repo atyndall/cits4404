@@ -31,8 +31,8 @@ public class GATree implements Serializable {
 	}
 	
 	public GATree(Node root) {
-		
 		this.root = root;
+		//this.root.setParent(new RootNode(this.root));
 	}
 	
 	public void setRoot(DecisionNode n) {
@@ -52,16 +52,18 @@ public class GATree implements Serializable {
 	}
 	
 	public List<Node> getNodeList() {
-		LinkedList<Node> l = new LinkedList<Node>();
+		LinkedList<Node> l = new LinkedList<Node>();		
 		getNodeList(l, this.root);
 		return l;
 	}
 	
 	private void getNodeList(List<Node> l, Node n) {
-		for (Node c : n.getChildren()) {
-			if (c != null) {
-				l.add(c);
-				getNodeList(l, c);
+		if (n != null) {
+			for (Node c : n.getChildren()) {
+				if (c != null) {
+					l.add(c);
+					getNodeList(l, c);
+				}
 			}
 		}
 	}

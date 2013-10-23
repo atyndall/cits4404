@@ -14,6 +14,7 @@ import java.util.Random;
 public class GATreeGenerator {
 	
 	private static String[] decisions = {
+			"BulletHitGT",
 			"BulletHitLT",
 			"BulletHitTR",
 			"BulletMissedTR",
@@ -103,11 +104,13 @@ public class GATreeGenerator {
 	}
 	
 	public GATree makeRandomTree() {
-		return new GATree(makeRandomTree(getRandomNode(), 0, 3));
+		GATree t = new GATree(makeRandomTree(getRandomNode(), 0, 3));
+		assert(t.getRoot() != null);
+		return t;
 	}
 	
 	private Node makeRandomTree(Node n, int depth, int maxdepth) {
-		if (depth >= maxdepth || rnd.nextDouble() > 0.95) {
+		if (depth >= maxdepth || (depth > 1 && rnd.nextDouble() > 0.95) ) {
 			return null;
 		}
 		

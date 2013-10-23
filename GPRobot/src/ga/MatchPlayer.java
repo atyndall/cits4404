@@ -26,7 +26,7 @@ public class MatchPlayer implements IBattleListener {
 	BattlefieldSpecification battlefield;
 	BattleSpecification battle;
 	RobocodeEngine engine;
-	BattleResults curResults;
+	BattleResults[] curResults;
 	
 	
 	public static void toFile(String path, Object obj) {
@@ -45,10 +45,10 @@ public class MatchPlayer implements IBattleListener {
 		engine.addBattleListener(this);
 		this.battlefield = new BattlefieldSpecification();
 		this.battle = new BattleSpecification(1, 10, 10, this.battlefield, this.engine.getLocalRepository("ga.GABot*,sample.SittingDuck"));
+		engine.setVisible(false);
 	}
 	
 	private void play() {
-		engine.setVisible(false);
 		engine.runBattle(battle, true);
 	}
 	
@@ -60,14 +60,29 @@ public class MatchPlayer implements IBattleListener {
 	public int fitness(GATree tree) {
 		playWith(tree);
 		assert(curResults != null);
-		return curResults.getScore();
+		return fitnessFromResult(curResults);
+	}
+	
+	private int fitnessFromResult(BattleResults[] br) {
+		int ourScore = br[0].getScore();
+		int theirScore = br[1].getScore();
+		if (ourScore == 0 && theirScore == 0) {
+			return 0;
+		} else if (ourScore == 0 && theirScore > 0) {
+			return -1 * theirScore;
+		} else if (theirScore == 0 && ourScore > 0) {
+			return ourScore;
+		} else {
+			return ourScore - theirScore;
+		}
 	}
 
 	@Override
 	public void onBattleCompleted(BattleCompletedEvent event) {
 		BattleResults[] br = event.getIndexedResults();
 		assert(br.length == 2);
-		curResults = br[0];
+		System.out.println("Battle complete; " + br[0].getScore() + " (us) vs " + br[1].getScore() + " (them) - fitness: " + fitnessFromResult(br));
+		curResults = br;
 	}
 
 	@Override
