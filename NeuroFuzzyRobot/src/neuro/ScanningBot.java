@@ -10,18 +10,23 @@ public class ScanningBot extends AdvancedRobot {
 		
 	}
 	
+	
+	
 	public void run() {
-	    // ...
-	 
-	    turnGunRightRadians(Double.POSITIVE_INFINITY);
-	    do {
-	        // Check for new targets.
-	        // Only necessary for Narrow Lock because sometimes our radar is already
-	        // pointed at the enemy and our onScannedRobot code doesn't end up telling
-	        // it to turn, so the system doesn't automatically call scan() for us
-	        // [see the javadocs for scan()].
-	        scan();
-	    } while (true);
+	    //do stuff that you want to happen at the start of the round
+		//also a good place for initialisation that can't happen outside the constructor
+		setAdjustRadarForGunTurn(true);
+		setAdjustRadarForRobotTurn(true);
+		do{
+			
+			//set everything else you want the robot to do this turn
+			//you need to use the "set" methods, everything will be called
+			//in execute
+			
+			if(getRadarTurnRemaining() == 0.0)
+				setTurnRadarRightRadians(Double.POSITIVE_INFINITY);
+			execute();
+		} while(true);
 	}
 	 
 	public void onScannedRobot(ScannedRobotEvent e) {
@@ -31,8 +36,9 @@ public class ScanningBot extends AdvancedRobot {
 	        // Subtract current radar heading to get turn required
 	        - getRadarHeadingRadians();
 	 
-	    setTurnGunRightRadians(Utils.normalRelativeAngle(radarTurn)*2.0);
+	    setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
 	 
-	    // ...
+	    //do other things you want to do per scan
+	    //you can do them before or after the above scanning code
 	}
 }
