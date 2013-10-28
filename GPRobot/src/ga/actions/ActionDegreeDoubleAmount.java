@@ -17,5 +17,6 @@ public abstract class ActionDegreeDoubleAmount extends ActionNodeDoubleAmount {
 	public static double GenRandom() {
 		return (double)(new Random().nextInt(720) - 360);
 	}
+
 	
 }

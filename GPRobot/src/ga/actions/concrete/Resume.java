@@ -12,7 +12,7 @@ public class Resume extends ActionNode {
 	
 	@Override
 	public void action() {
-		this.getRobot().resume();
+		this.getRobot().setResume();
 	}
 
 }

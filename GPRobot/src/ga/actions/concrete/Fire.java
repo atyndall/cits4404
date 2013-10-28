@@ -1,5 +1,6 @@
 package ga.actions.concrete;
 
+import ga.Node;
 import ga.actions.ActionNodeDoubleAmount;
 
 import java.util.Random;
@@ -11,12 +12,15 @@ public class Fire extends ActionNodeDoubleAmount {
 	}
 	
 	public static double GenRandom() {
-		return (double)(new Random().nextInt(100));
+		return (double)(new Random().nextInt(3));
 	}
 	
 	@Override
 	public void action() {
-		this.getRobot().fire(this.getAmount());
+		double gunHeat = this.getRobot().getGunHeat();
+		if (gunHeat == 0) {
+			this.getRobot().setFire(this.getAmount());
+		}
 	}
 
 }

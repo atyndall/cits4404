@@ -8,43 +8,54 @@ import ga.decisions.DecisionNode;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 
 public class GATreeGenerator {
 	
-	private static String[] decisions = {
-			"BulletHitGT",
-			"BulletHitLT",
-			"BulletHitTR",
-			"BulletMissedTR",
-			"EnergyGT",
-			"EnergyLT",
-			"GunHeatGT",
-			"GunHeatLT",
-			"HitByBulletGT",
-			"HitByBulletLT",
-			"HitByBulletTR",
-			"HitRobotGT",
-			"HitRobotLT",
-			"HitRobotTR",
-			"ScannedRobotTR",
-			"VelocityGT",
-			"VelocityLT",
+	private static Map<String, Double> decisions = new HashMap<String, Double>() {
+		{
+		  //put("BulletHitGT", 		1.0);
+		  //put("BulletHitLT", 		1.0);
+			put("BulletHitTR", 		1.0);
+			put("BulletMissedTR",	1.0);
+		  //put("EnergyGT", 		1.0);
+			put("EnergyLT", 		1.0);
+		  //put("GunHeatGT",		0.0);
+		  //put("GunHeatLT", 		0.0);
+			put("GunHeatAllowFire",	1.0);
+		  //put("HitByBulletGT", 	1.0);
+		  //put("HitByBulletLT", 	1.0);
+			put("HitByBulletTR", 	1.0);
+		  //put("HitRobotGT", 		1.0);
+			put("HitRobotLT", 		1.0);
+			put("HitRobotTR", 		1.0);
+			put("ScannedRobotTR", 	1.0);
+		  //put("VelocityGT", 		1.0);
+			put("VelocityLT", 		1.0);
+		}
 	};
 	
-	private static String[] actions = {
-			"Ahead",
-			"Fire",
-			//"Resume",
-			//"Stop",
-			"TurnGunLeft",
-			"TurnLeft",
-			"TurnRadarLeft",
+	private static Map<String, Double> actions = new HashMap<String, Double>() {
+		{
+		    put("Ahead", 			1.0);
+			put("Fire", 			1.0);
+		    put("Resume", 			0.2);
+		    put("Stop", 			0.2);
+		    put("TurnGunLeft", 		0.2);
+		    put("TurnLeft", 		1.0);
+		  //put("TurnRadarLeft", 	1.0);
+		}
 	};
 	
 	private List<Constructor<DecisionNode>> decisionConstructors;
 	private List<Constructor<ActionNode>> actionConstructors;
+	private List<Double> decisionProbs;
+	private List<Double> actionProbs;
+	
 	private Random rnd;
 	
 	protected Node getRandomNode() {
@@ -56,8 +67,17 @@ public class GATreeGenerator {
 	}
 	
 	protected ActionNode getRandomAction() {
-		int index = rnd.nextInt(actions.length);
-		Constructor<ActionNode> c = actionConstructors.get(index);
+		Constructor<ActionNode> c;
+		double prob;
+		double selectprob;
+		
+		do {
+			int index = rnd.nextInt(actions.size());
+			c = actionConstructors.get(index);
+			prob = actionProbs.get(index);
+			selectprob = rnd.nextDouble();
+		} while (selectprob >= prob); // TODO verify accuracy
+		
 		
 		try {
 			return c.newInstance();
@@ -70,7 +90,7 @@ public class GATreeGenerator {
 	}
 	
 	protected DecisionNode getRandomDecision() {
-		int index = rnd.nextInt(decisions.length);
+		int index = rnd.nextInt(decisions.size());
 		Constructor<DecisionNode> c = decisionConstructors.get(index);
 		
 		try {
@@ -85,17 +105,22 @@ public class GATreeGenerator {
 	
 	@SuppressWarnings("unchecked")
 	private void populateConstructorLists() {
+		
 		try {			
-			decisionConstructors = new ArrayList<Constructor<DecisionNode>>(decisions.length);
-			for (String c : decisions) {
-				Class<DecisionNode> cls = (Class<DecisionNode>) Class.forName("ga.decisions.concrete." + c);
+			decisionConstructors = new ArrayList<Constructor<DecisionNode>>(decisions.size());
+			decisionProbs = new ArrayList<Double>(decisions.size());
+			for (Entry<String, Double> e : decisions.entrySet()) {
+				Class<DecisionNode> cls = (Class<DecisionNode>) Class.forName("ga.decisions.concrete." + e.getKey());
 				decisionConstructors.add(cls.getConstructor());
+				decisionProbs.add(e.getValue());
 			}
 
-			actionConstructors = new ArrayList<Constructor<ActionNode>>(actions.length);
-			for (String c : actions) {
-				Class<ActionNode> cls = (Class<ActionNode>) Class.forName("ga.actions.concrete." + c);
+			actionConstructors = new ArrayList<Constructor<ActionNode>>(actions.size());
+			actionProbs = new ArrayList<Double>(actions.size());
+			for (Entry<String, Double> e : actions.entrySet()) {
+				Class<ActionNode> cls = (Class<ActionNode>) Class.forName("ga.actions.concrete." + e.getKey());
 				actionConstructors.add(cls.getConstructor());
+				actionProbs.add(e.getValue());
 			}		
 		} catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
 			e.printStackTrace();

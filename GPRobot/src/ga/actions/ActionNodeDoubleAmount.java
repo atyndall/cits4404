@@ -10,6 +10,10 @@ public abstract class ActionNodeDoubleAmount extends ActionNode {
 		return this.amt;
 	}
 	
+	public void setAmount(double amt) {
+		this.amt = amt;
+	}
+	
 	public String toString() {
 		return this.getClass().getName() + " amt=" + this.amt;
 	}

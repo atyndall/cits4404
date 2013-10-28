@@ -2,9 +2,6 @@ package ga.actions;
 
 import ga.Node;
 
-
-
-
 public abstract class ActionNode extends Node {
 	private Node childNode;
 	
@@ -25,7 +22,8 @@ public abstract class ActionNode extends Node {
 	}
 
 	public Node[] getChildren() {
-		Node[] ret = {childNode};
+		Node[] ret = new Node[1];
+		ret[0] = childNode;
 		return ret;
 	}
 	
@@ -38,4 +36,5 @@ public abstract class ActionNode extends Node {
 	}
 	
 	public int numChildren() { return 1; }
+
 }

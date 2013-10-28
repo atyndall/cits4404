@@ -27,6 +27,7 @@ public class MatchPlayer implements IBattleListener {
 	BattleSpecification battle;
 	RobocodeEngine engine;
 	BattleResults[] curResults;
+	boolean verbose;
 	
 	
 	public static void toFile(String path, Object obj) {
@@ -41,18 +42,23 @@ public class MatchPlayer implements IBattleListener {
 	}
 	
 	public MatchPlayer() {
+		this(false, false);
+	}
+	
+	public MatchPlayer(boolean visible, boolean verbose) {
 		this.engine = new RobocodeEngine (new File(Config.robocodeLoc));
 		engine.addBattleListener(this);
 		this.battlefield = new BattlefieldSpecification();
-		this.battle = new BattleSpecification(1, 10, 10, this.battlefield, this.engine.getLocalRepository("ga.GABot*,sample.SittingDuck"));
-		engine.setVisible(false);
+		this.battle = new BattleSpecification(1, 450, 0.1, this.battlefield, this.engine.getLocalRepository("ga.GABot*,sample.Walls"));
+		engine.setVisible(visible);
+		this.verbose = verbose;
 	}
 	
 	private void play() {
 		engine.runBattle(battle, true);
 	}
 	
-	private void playWith(GATree tree) {
+	public void playWith(GATree tree) {
 		toFile(Config.serializedLoc, tree);
 		play();
 	}
@@ -81,7 +87,11 @@ public class MatchPlayer implements IBattleListener {
 	public void onBattleCompleted(BattleCompletedEvent event) {
 		BattleResults[] br = event.getIndexedResults();
 		assert(br.length == 2);
-		System.out.println("Battle complete; " + br[0].getScore() + " (us) vs " + br[1].getScore() + " (them) - fitness: " + fitnessFromResult(br));
+		if (verbose) {
+			System.out.println("Battle complete; " + br[0].getScore() + " (us) vs " + br[1].getScore() + " (them) - fitness: " + fitnessFromResult(br));
+		} else {
+			System.out.print(".");
+		}
 		curResults = br;
 	}
 

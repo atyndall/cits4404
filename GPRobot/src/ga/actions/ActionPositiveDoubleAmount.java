@@ -2,6 +2,8 @@ package ga.actions;
 
 
 
+import ga.Node;
+
 import java.util.Random;
 
 public abstract class ActionPositiveDoubleAmount extends ActionNodeDoubleAmount {

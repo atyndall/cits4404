@@ -4,9 +4,12 @@ package ga;
 
 import ga.decisions.DecisionNode;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -28,6 +31,31 @@ public class GATree implements Serializable {
 		for (Node c : n.getChildren()) {
 			if (c != null) PrintNode(c);
 		}
+	}
+	
+	public static GATree CopyTree(GATree orig) {
+		GATree obj = null;
+        try {
+            // Write the object out to a byte array
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream out = new ObjectOutputStream(bos);
+            out.writeObject(orig);
+            out.flush();
+            out.close();
+
+            // Make an input stream from the byte array and read
+            // a copy of the object back in.
+            ObjectInputStream in = new ObjectInputStream(
+                new ByteArrayInputStream(bos.toByteArray()));
+            obj = (GATree) in.readObject();
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+        }
+        catch(ClassNotFoundException cnfe) {
+            cnfe.printStackTrace();
+        }
+        return obj;
 	}
 	
 	public GATree(Node root) {

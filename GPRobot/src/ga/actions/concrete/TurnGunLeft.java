@@ -12,7 +12,7 @@ public class TurnGunLeft extends ActionDegreeDoubleAmount {
 	
 	@Override
 	public void action() {
-		this.getRobot().turnGunLeft(this.getAmount());
+		this.getRobot().setTurnGunLeft(this.getAmount());
 	}
 
 }

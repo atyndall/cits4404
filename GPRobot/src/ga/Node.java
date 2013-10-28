@@ -39,4 +39,5 @@ public abstract class Node implements Serializable {
 	public void setParent(Node n) {
 		this.parent = n;
 	}
+
 }

@@ -1,6 +1,7 @@
 package ga.actions.concrete;
 
 import ga.actions.ActionNodeDoubleAmount;
+import ga.Node;
 
 public class Ahead extends ActionNodeDoubleAmount {
 
@@ -8,7 +9,7 @@ public class Ahead extends ActionNodeDoubleAmount {
 	
 	@Override
 	public void action() {
-		this.getRobot().turnGunLeft(this.getAmount());
+		this.getRobot().setTurnGunLeft(this.getAmount());
 	}
 
 }

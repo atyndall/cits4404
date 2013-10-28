@@ -12,7 +12,7 @@ public class Stop extends ActionNode {
 	
 	@Override
 	public void action() {
-		this.getRobot().stop();
+		this.getRobot().setStop();
 	}
 
 }

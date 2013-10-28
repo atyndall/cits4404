@@ -12,7 +12,7 @@ public class TurnRadarLeft extends ActionDegreeDoubleAmount {
 	
 	@Override
 	public void action() {
-		this.getRobot().turnRadarLeft(this.getAmount());
+		this.getRobot().setTurnRadarLeft(this.getAmount());
 	}
 
 }
