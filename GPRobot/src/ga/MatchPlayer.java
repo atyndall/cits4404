@@ -30,7 +30,7 @@ public class MatchPlayer {
 	}
 	
 	public Map<GATree, Integer> run() {
-		int numPer = treesToTest.size() / numThreads;
+		int numPer = treesToTest.size() / (numThreads - 1);
 		List<GATree[]> queuedTrees = new LinkedList<GATree[]>();
 		while (treesToTest.size() != 0) {
 			List<GATree> nl = new LinkedList<GATree>();
