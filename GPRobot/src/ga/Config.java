@@ -1,8 +1,8 @@
 package ga;
 
 public final class Config {
-	public static final String serializedLoc = "D:/Users/atyndall/Dropbox/Uni/Units/CITS4404 Artificial Intelligence and Adaptive Systems/Project/cits4404/actiontree.ser";
-	public static final String logLoc = "D:/Users/atyndall/Dropbox/Uni/Units/CITS4404 Artificial Intelligence and Adaptive Systems/Project/cits4404/gabot.log";
-	public static final String finalOut = "D:/Users/atyndall/Dropbox/Uni/Units/CITS4404 Artificial Intelligence and Adaptive Systems/Project/cits4404/finalout.ser";
-	public static final String robocodeLoc = "C:/Program Files/Robocode";
+	public static final String serializedLoc = "/home/atyndall/workspace/cits4404/actiontree.ser";
+	public static final String logLoc = "/home/atyndall/workspace/cits4404/cits4404/gabot.log";
+	public static final String finalOut = "/home/atyndall/workspace/cits4404/finalout.ser";
+	public static final String robocodeLoc = "/home/atyndall/robocode";
 }

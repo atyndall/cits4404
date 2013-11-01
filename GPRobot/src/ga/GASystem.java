@@ -97,9 +97,9 @@ public class GASystem {
 	public Map<GATree, Integer> getFitnesses(List<GATree> trees) {
 		Map<GATree, Integer> m = new HashMap<GATree, Integer>();
 		for (GATree t : trees) {
-			m.put(t, mp.fitness(t));
+			mp.enqueueTree(t);
 		}
-		return m;
+		return mp.run();
 	}
 	
 	private static List<GATree> fitSort(Map<GATree, Integer> map) {

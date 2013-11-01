@@ -2,16 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="C:/Program Files/Robocode/libs/codesize-1.1.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Robocode/libs/picocontainer-2.14.2.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Robocode/libs/robocode.battle-1.8.3.0.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Robocode/libs/robocode.core-1.8.3.0.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Robocode/libs/robocode.host-1.8.3.0.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Robocode/libs/robocode.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Robocode/libs/robocode.repository-1.8.3.0.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Robocode/libs/robocode.sound-1.8.3.0.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Robocode/libs/robocode.ui.editor-1.8.3.0.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Robocode/libs/robocode.ui-1.8.3.0.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Robocode/libs/roborumble.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/robocode"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

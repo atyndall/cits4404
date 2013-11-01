@@ -2,6 +2,8 @@ package ga;
 
 
 
+import ga.botthreads.GABot;
+
 import java.io.Serializable;
 
 
