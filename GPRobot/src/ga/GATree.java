@@ -50,11 +50,9 @@ public class GATree implements Serializable {
                 new ByteArrayInputStream(bos.toByteArray()));
             obj = (GATree) in.readObject();
         }
-        catch(IOException e) {
+        catch(IOException | ClassNotFoundException e) {
             e.printStackTrace();
-        }
-        catch(ClassNotFoundException cnfe) {
-            cnfe.printStackTrace();
+            System.exit(1);
         }
         return obj;
 	}

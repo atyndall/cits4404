@@ -34,21 +34,21 @@ public class GABot extends AdvancedRobot implements IBasicEvents {
 	
 	public GABot(int num) {
 		try {
-			this.fout = new FileOutputStream(Config.logLoc + num);
+			this.fout = new FileOutputStream(Config.logLoc + num + ".log");
 		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
+			System.exit(1);
 		}
 		
 		try {
-			FileInputStream door = new FileInputStream(Config.serializedLoc + num);
+			FileInputStream door = new FileInputStream(Config.serializedLoc + num + ".ser");
 			ObjectInputStream reader = new ObjectInputStream(door);
 			this.actionTree = (GATree) reader.readObject();
 			assert(this.actionTree != null);
 			reader.close();
 		} catch (IOException | ClassNotFoundException e){
 			e.printStackTrace();
-			return;
+			System.exit(1);
 		}
 		
 		this.actionTree.setRobot(this);

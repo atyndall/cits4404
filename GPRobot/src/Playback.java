@@ -36,7 +36,8 @@ public class Playback {
         GASystem sys = new GASystem(true, true); 
           
         System.out.println("Applying fitness function"); 
-        Map<GATree, Integer> allfit = sys.getFitnesses(trees.subList(1, 2)); 
+        sys.setFitnesses(trees.subList(1, 2)); 
+        Map<GATree, Integer> allfit = sys.getFitness(); 
         System.out.println(); 
           
         sys.fitnessStats(allfit); 

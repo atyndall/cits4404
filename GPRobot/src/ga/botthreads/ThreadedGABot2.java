@@ -2,7 +2,7 @@ package ga.botthreads;
 
 public class ThreadedGABot2 extends GABot {
 	
-	ThreadedGABot2() {
+	public ThreadedGABot2() {
 		super(2);
 	}
 }

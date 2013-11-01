@@ -94,11 +94,13 @@ public class GASystem {
 		n1.setParent(n2p);
 	}
 	
-	public Map<GATree, Integer> getFitnesses(List<GATree> trees) {
-		Map<GATree, Integer> m = new HashMap<GATree, Integer>();
+	public void setFitnesses(List<GATree> trees) {
 		for (GATree t : trees) {
 			mp.enqueueTree(t);
 		}
+	}
+	
+	public Map<GATree, Integer> getFitness() {
 		return mp.run();
 	}
 	
@@ -226,11 +228,9 @@ public class GASystem {
 			}
 			
 			System.out.println("Applying fitness function");
-			Map<GATree, Integer> tfit = getFitnesses(trees);
-			Map<GATree, Integer> nfit = getFitnesses(nextgen);
-			Map<GATree, Integer> allfit = new HashMap<GATree, Integer>();
-			allfit.putAll(tfit);
-			allfit.putAll(nfit);
+			setFitnesses(trees);
+			setFitnesses(nextgen);
+			Map<GATree, Integer> allfit = getFitness();
 			System.out.println();
 			
 			fitnessStats(allfit);

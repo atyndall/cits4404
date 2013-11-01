@@ -24,6 +24,8 @@ public class EvolveOut {
 			System.out.printf("Serialized data is saved in " + Config.finalOut);
 	    } catch(IOException i) {
 	        i.printStackTrace();
+	        System.exit(1);
 	    }
+		
 	}
 }
