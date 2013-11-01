@@ -2,6 +2,7 @@ package ga;
 
 
 
+import ga.botthreads.GABot;
 import ga.decisions.DecisionNode;
 
 import java.io.ByteArrayInputStream;

@@ -1,159 +1,88 @@
 package ga;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-
-import robocode.BattleResults;
-import robocode.control.*;
-import robocode.control.events.BattleCompletedEvent;
-import robocode.control.events.BattleErrorEvent;
-import robocode.control.events.BattleFinishedEvent;
-import robocode.control.events.BattleMessageEvent;
-import robocode.control.events.BattlePausedEvent;
-import robocode.control.events.BattleResumedEvent;
-import robocode.control.events.BattleStartedEvent;
-import robocode.control.events.IBattleListener;
-import robocode.control.events.RoundEndedEvent;
-import robocode.control.events.RoundStartedEvent;
-import robocode.control.events.TurnEndedEvent;
-import robocode.control.events.TurnStartedEvent;
-
-public class MatchPlayer implements IBattleListener {
-	BattlefieldSpecification battlefield;
-	BattleSpecification battle;
-	RobocodeEngine engine;
-	BattleResults[] curResults;
+public class MatchPlayer {
 	boolean verbose;
+	boolean visible;
+	Queue<GATree> treesToTest;
 	
-	
-	public static void toFile(String path, Object obj) {
-		try {
-			ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(path));
-			out.writeObject(obj);
-			out.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+	public static final int numThreads = 6;
+	private ExecutorService pool;
 	
 	public MatchPlayer() {
 		this(false, false);
 	}
 	
 	public MatchPlayer(boolean visible, boolean verbose) {
-		this.engine = new RobocodeEngine (new File(Config.robocodeLoc));
-		engine.addBattleListener(this);
-		this.battlefield = new BattlefieldSpecification();
-		this.battle = new BattleSpecification(1, 450, 0.1, this.battlefield, this.engine.getLocalRepository("ga.GABot*,sample.Walls"));
-		engine.setVisible(visible);
+		this.visible = visible;
 		this.verbose = verbose;
+		this.treesToTest = new LinkedList<GATree>();
+		this.pool = Executors.newFixedThreadPool(numThreads);
 	}
 	
-	private void play() {
-		engine.runBattle(battle, true);
-	}
-	
-	public void playWith(GATree tree) {
-		toFile(Config.serializedLoc, tree);
-		play();
-	}
-	
-	public int fitness(GATree tree) {
-		playWith(tree);
-		assert(curResults != null);
-		return fitnessFromResult(curResults);
-	}
-	
-	private int fitnessFromResult(BattleResults[] br) {
-		int ourScore = br[0].getScore();
-		int theirScore = br[1].getScore();
-		if (ourScore == 0 && theirScore == 0) {
-			return 0;
-		} else if (ourScore == 0 && theirScore > 0) {
-			return -1 * theirScore;
-		} else if (theirScore == 0 && ourScore > 0) {
-			return ourScore;
-		} else {
-			return ourScore - theirScore;
+	public Map<GATree, Integer> run() {
+		int numPer = treesToTest.size() / numThreads;
+		List<GATree[]> queuedTrees = new LinkedList<GATree[]>();
+		while (treesToTest.size() != 0) {
+			List<GATree> nl = new LinkedList<GATree>();
+			for (int i = 0; i < numPer; i++) {
+				if (treesToTest.size() == 0) break;
+				nl.add(treesToTest.remove());
+			}
+			if (nl.size() > 0)
+				queuedTrees.add(nl.toArray(new GATree[nl.size()]));
 		}
-	}
-
-	@Override
-	public void onBattleCompleted(BattleCompletedEvent event) {
-		BattleResults[] br = event.getIndexedResults();
-		assert(br.length == 2);
-		if (verbose) {
-			System.out.println("Battle complete; " + br[0].getScore() + " (us) vs " + br[1].getScore() + " (them) - fitness: " + fitnessFromResult(br));
-		} else {
-			System.out.print(".");
+		
+		List<CallableMatchPlayer> matches = new LinkedList<CallableMatchPlayer>();
+		
+		int num = 1;
+		for (GATree[] trees : queuedTrees) {
+			matches.add(new CallableMatchPlayer(true, verbose, trees, num));
+			num++;
 		}
-		curResults = br;
-	}
-
-	@Override
-	public void onBattleError(BattleErrorEvent event) {
-		// TODO Auto-generated method stub
 		
-	}
-
-	@Override
-	public void onBattleFinished(BattleFinishedEvent event) {
-		// TODO Auto-generated method stub
+		List<Future<Map<GATree, Integer>>> futures;
+		try {
+			futures = pool.invokeAll(matches);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
+		}
 		
-	}
-
-	@Override
-	public void onBattleMessage(BattleMessageEvent event) {
-		// TODO Auto-generated method stub
+		Map<GATree, Integer> m = new HashMap<GATree, Integer>();
 		
-	}
-
-	@Override
-	public void onBattlePaused(BattlePausedEvent event) {
-		// TODO Auto-generated method stub
+		boolean allDone = false;
+		while (!allDone) {
+			allDone = true;
+			for(Future<Map<GATree, Integer>> f : futures) {
+				if (f.isDone()) {
+					try {
+						m.putAll(f.get());
+						System.out.println("Some tasks complete");
+					} catch (InterruptedException | ExecutionException e) {
+						e.printStackTrace();
+						return null;
+					}
+				} else {
+					allDone = false;
+				}
+			}
+		}
 		
+		return m;
 	}
-
-	@Override
-	public void onBattleResumed(BattleResumedEvent event) {
-		// TODO Auto-generated method stub
-		
+	
+	public void enqueueTree(GATree tree) {
+		treesToTest.add(tree);
 	}
-
-	@Override
-	public void onBattleStarted(BattleStartedEvent event) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onRoundEnded(RoundEndedEvent event) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onRoundStarted(RoundStartedEvent event) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onTurnEnded(TurnEndedEvent event) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onTurnStarted(TurnStartedEvent event) {
-		// TODO Auto-generated method stub
-		
-	}
-
 	
 }
