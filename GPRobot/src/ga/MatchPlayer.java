@@ -25,7 +25,6 @@ public class MatchPlayer {
 	boolean verbose;
 	boolean visible;
 	Queue<GATree> treesToTest;
-	BattleRunner br;
 	
 	public static final String[] robocodePaths = {
 		Config.robocodeLoc + 1,
@@ -36,6 +35,8 @@ public class MatchPlayer {
 		Config.robocodeLoc + 6
 	};
 	
+	Set<String> robots;
+	
 	public MatchPlayer() {
 		this(false, false);
 	}
@@ -44,15 +45,18 @@ public class MatchPlayer {
 		this.visible = visible;
 		this.verbose = verbose;
 		this.treesToTest = new LinkedList<GATree>();
-		Set<String> robots = new HashSet<String>(Arrays.asList(robocodePaths));
-		this.br = new BattleRunner(robots, "-Xmx512M -Djava.security.manager -Djava.security.policy==/home/atyndall/.java.policy -Dsun.io.useCanonCaches=false -DNOSECURITY=true -Ddebug=true", 5, 800, 600);
+		this.robots = new HashSet<String>(Arrays.asList(robocodePaths));
 	}
 	
 	public Map<GATree, Integer> run() {
+		BattleRunner br = new BattleRunner(robots, "-Xmx512M -Djava.security.manager -Djava.security.policy==/home/atyndall/.java.policy -Dsun.io.useCanonCaches=false -DNOSECURITY=true -Ddebug=true", 5, 800, 600);
+		System.out.println();
+		System.out.println("System initialized");
 		Map<GATree, Integer> m = new HashMap<GATree, Integer>();
-		System.out.println(treesToTest.size());
-		br.runBattles((List<GATree>)treesToTest, new BotList("sample.Walls"), new resultsHandler(m));
-		
+		List<GATree> testing = new LinkedList<GATree>(treesToTest);
+		treesToTest.clear();
+		br.runBattles(testing, new BotList("sample.Walls"), new resultsHandler(m));
+		br.shutdown();
 		return m;
 	}
 	

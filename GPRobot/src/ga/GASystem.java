@@ -4,7 +4,9 @@ package ga;
 
 import ga.actions.ActionNode;
 
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
@@ -24,6 +26,8 @@ public class GASystem {
 	private GATreeGenerator gen;
 	private MatchPlayer mp;
 	private Random rnd;
+	private FileWriter csv;
+	private File outdir;
 	
 	private void mutateSwap(GATree t) {
 		Random rnd = new Random();
@@ -97,7 +101,7 @@ public class GASystem {
 		n1.setParent(n2p);
 	}
 	
-	public void setFitnesses(List<GATree> trees) {
+	public void setFitness(List<GATree> trees) {
 		for (GATree t : trees) {
 			mp.enqueueTree(t);
 		}
@@ -107,8 +111,19 @@ public class GASystem {
 		return mp.run();
 	}
 	
-	private static List<GATree> fitSort(Map<GATree, Integer> map) {
-		List<GATree> l = new ArrayList<GATree>(map.size());
+	private static class TreeFitness {
+		public final GATree t;
+		public final int fitness;
+		
+		public TreeFitness(GATree t, int fitness) {
+			this.t = t;
+			this.fitness = fitness;
+		}
+
+	}
+	
+	private static List<TreeFitness> fitSort(Map<GATree, Integer> map) {
+		List<TreeFitness> l = new ArrayList<TreeFitness>(map.size());
 		
 		while(map.size() > 0) {
 			boolean maxSet = false;
@@ -121,7 +136,7 @@ public class GASystem {
 					maxSet = true;
 				}
 			}
-			l.add(maxTree);
+			l.add(new TreeFitness(maxTree, maxVal));
 			map.remove(maxTree);
 		}
 		
@@ -136,16 +151,16 @@ public class GASystem {
 		return rMin + (valueScaled * rightSpan);
 	}
 	
-	private List<GATree> rouletteWheel(Map<GATree, Integer> fitnessMap) {
-		List<GATree> s = GASystem.fitSort(fitnessMap);
+	private List<TreeFitness> rouletteWheel(Map<GATree, Integer> fitnessMap) {
+		List<TreeFitness> s = GASystem.fitSort(fitnessMap);
 		
-		Map<GATree, Double> prob = new HashMap<GATree, Double>();
+		Map<TreeFitness, Double> prob = new HashMap<TreeFitness, Double>();
 		for (int i = 0; i < s.size(); i++) {
 			prob.put(s.get(i), translate(i, 0, s.size(), 0, 1));
 		}
 		
-		List<GATree> l = new ArrayList<GATree>();
-		for (Map.Entry<GATree, Double> e : prob.entrySet()) {
+		List<TreeFitness> l = new ArrayList<TreeFitness>();
+		for (Map.Entry<TreeFitness, Double> e : prob.entrySet()) {
 			if (rnd.nextDouble() < e.getValue()) {
 				l.add(e.getKey());
 			}
@@ -154,9 +169,9 @@ public class GASystem {
 		return l;
 	}
 	
-	private GATree[] topX(Map<GATree, Integer> fitnessMap, int x) {
-		List<GATree> s = GASystem.fitSort(fitnessMap);
-		return s.subList(0,  x).toArray(new GATree[x]);
+	private TreeFitness[] topX(Map<GATree, Integer> fitnessMap, int x) {
+		List<TreeFitness> s = GASystem.fitSort(fitnessMap);
+		return s.subList(0,  x).toArray(new TreeFitness[x]);
 	}
 	
 	private List<GATree> makeRandomTrees(int amt) {
@@ -203,16 +218,20 @@ public class GASystem {
 	}
 	
 	public List<GATree> evolve(int generations) {
-		System.out.println("Generating random trees");
-		List<GATree> trees = makeRandomTrees(100);
+		System.out.println("Generating random treesttt");
 		
-		for (int x = 0; x < generations; x++) {
+		setFitness(makeRandomTrees(100));
+		Map<GATree, Integer> oldgen = getFitness();	
+		List<GATree> nextgen = new ArrayList<GATree>(100);
+		
+		for (int x = 0; x <= generations; x++) {
 			System.out.println("GENERATION " + x);
-			List<GATree> nextgen = new ArrayList<GATree>(generations);
-			for (GATree t : trees) nextgen.add(GATree.CopyTree(t));
 			
+			nextgen.clear();
+			for (GATree t : oldgen.keySet()) nextgen.add(GATree.CopyTree(t));
 			Collections.shuffle(nextgen);
 			
+			// TODO: Uncomment
 			System.out.println("Applying mutations");
 			for (GATree t : nextgen) {
 				assert(t != null);
@@ -220,7 +239,7 @@ public class GASystem {
 					mutateSwap(t);
 				}
 			}
-			
+	
 			System.out.println("Applying crossover");
 			int max = nextgen.size();
 			if (nextgen.size() % 2 != 0) {
@@ -231,43 +250,47 @@ public class GASystem {
 			}
 			
 			System.out.println("Applying fitness function");
-			if (x != 0) {
-				setFitnesses(trees);
-			}
-			setFitnesses(nextgen);
-			Map<GATree, Integer> allfit = getFitness();
-			System.out.println();
 			
-			fitnessStats(allfit);
+			setFitness(nextgen);
+			if (nextgen.size() != 100) {
+				int r = 100-nextgen.size();
+				System.out.println("Some trees short, generating "+r+" random ones");
+				setFitness(makeRandomTrees(r));
+			}
+			Map<GATree, Integer> newfit = getFitness();
+			Map<GATree, Integer> allfit = new HashMap<GATree, Integer>(newfit);
+			allfit.putAll(oldgen);
+			
+			System.out.println();
+			fitnessStats(x, allfit);
 			
 			try {
-				FileOutputStream fileOut = new FileOutputStream(Config.finalOut + x + ".ser");
+				String outp = outdir.getAbsolutePath() + File.separator + x + ".ser";
+				FileOutputStream fileOut = new FileOutputStream(outp);
 				ObjectOutputStream out = new ObjectOutputStream(fileOut);
-				out.writeObject(trees);
+				out.writeObject(nextgen);
 				out.close();
 				fileOut.close();
-				System.out.printf("Serialized data is saved in " + Config.finalOut);
+				System.out.println("Serialized data is saved in " + outp);
 		    } catch(IOException i) {
 		        i.printStackTrace();
 		        //System.exit(1);
 		    }
 			
 			
-			trees.clear();
-			for (GATree t : topX(allfit, 100)) trees.add(t);
-			
-			if (!(trees.size() >= 10)) {
-				throw new RuntimeException("Tree is too small");
+			oldgen.clear();
+			for (TreeFitness t : topX(allfit, 100)) {
+				oldgen.put(t.t, t.fitness);
 			}
-			
+			System.out.println("Oldgen size; " + oldgen.size());
 			
 			//assert(trees.size() >= 10); // we don't have enough diversity, or the algo is borked
 		}
 		
-		return trees;
+		return nextgen;
 	}
 	
-	public void fitnessStats(Map<GATree, Integer> allfit) {
+	public void fitnessStats(int generation, Map<GATree, Integer> allfit) {
 		int[] values = new int[allfit.size()];
 		int i = 0;
 		for (Integer e : allfit.values()) {
@@ -276,10 +299,37 @@ public class GASystem {
 		}
 		Arrays.sort(values);
 		
+		csvWrite(generation, mean(values), median(values), mode(values));
 		System.out.println("Mean: " + mean(values) + ", Median: " + median(values) + ", Mode: " + mode(values));
 	}
+	
+	private void csvWrite(Object ... lines) {
+		for (Object l : lines) {
+			try {
+				if (l instanceof String) {
+					String s = (String)l;
+					this.csv.append("\"" + s.replaceAll("\"", "\"\"") + "\"");
+				} else {
+					this.csv.append("\"" + l + "\"");
+				}
+				this.csv.append(",");
+				this.csv.flush();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
 
-	public GASystem(boolean display, boolean verbose) {
+	public GASystem(File outdir, boolean display, boolean verbose) throws IOException {
+		this.outdir = outdir;
+		File csv = new File(outdir.getAbsolutePath() + File.separator + "out.csv");
+		csv.createNewFile();
+		
+		this.csv = new FileWriter(csv);
+		csvWrite("Generation", "Mean", "Median", "Mode");
+		
 		this.gen = new GATreeGenerator();
 		this.mp = new MatchPlayer(display, verbose);
 		this.rnd = new Random();

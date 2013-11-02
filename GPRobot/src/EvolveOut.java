@@ -1,6 +1,8 @@
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Date;
 import java.util.List;
 
 import ga.Config;
@@ -10,8 +12,14 @@ import ga.GATree;
 
 public class EvolveOut {
 
-	public static void main(String[] args) {
-		GASystem sys = new GASystem(false, false);
+	public static void main(String[] args) throws IOException {
+		Date date = new Date();
+		File outdir = new File(Config.outDir + date.getTime());
+		if (!outdir.mkdir()) throw new IOException("Couldn't make dir");
+		
+		System.out.println("Outputting data to " + outdir.getAbsolutePath());
+		
+		GASystem sys = new GASystem(outdir, false, false);
 		System.out.println("Evolving for 100 generations");
 		List<GATree> res = sys.evolve(100);
 		

@@ -47,7 +47,7 @@ public class GATreeGenerator {
 			put("Fire", 			1.0);
 		    put("Resume", 			0.2);
 		    put("Stop", 			0.2);
-		    put("TurnGunLeft", 		0.2);
+		    put("VaryGun", 			0.4);
 		    put("TurnLeft", 		1.0);
 		  //put("TurnRadarLeft", 	1.0);
 		}

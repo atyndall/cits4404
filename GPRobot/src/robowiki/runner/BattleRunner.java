@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,7 +37,7 @@ public class BattleRunner {
   private static final Joiner COMMA_JOINER = Joiner.on(",");
 
   private Queue<Process> _processQueue;
-  private Map<Process, String> _commandMapping;
+  private ConcurrentHashMap<Process, String> _commandMapping;
   private ExecutorService _threadPool;
   private ExecutorService _callbackPool;
   private int _threadPoolSize;
@@ -44,10 +45,12 @@ public class BattleRunner {
   private int _battleFieldWidth;
   private int _battleFieldHeight;
   private String _jvmArgs;
-
+  private List<Process> _allProcs;
+  
   public BattleRunner(Set<String> robocodeEnginePaths, String jvmArgs,
       int numRounds, int battleFieldWidth, int battleFieldHeight) {
-	_commandMapping = new HashMap<Process, String>();
+	_commandMapping = new ConcurrentHashMap<Process, String>();
+	_allProcs = new LinkedList<Process>();
     _numRounds = numRounds;
     _battleFieldWidth = battleFieldWidth;
     _battleFieldHeight = battleFieldHeight;
@@ -81,7 +84,7 @@ public class BattleRunner {
 	      
 	      //System.out.println(command);
 
-	      System.out.print("Initializing engine: " + enginePath + "... ");
+	      //System.out.print("Initializing engine: " + enginePath + "... ");
 	      ProcessBuilder builder = new ProcessBuilder(command);
 	      builder.redirectErrorStream(true);
 	      Process battleProcess = builder.start();
@@ -91,7 +94,9 @@ public class BattleRunner {
 	      do {
 	        processOutput = reader.readLine();
 	      } while (!processOutput.equals(BattleProcess.READY_SIGNAL));
-	      System.out.println("done!");
+	      //System.out.println("done!");
+	      System.out.print("*");
+	      _allProcs.add(battleProcess);
 		  return battleProcess;
 	    } catch (IOException e) {
 	      e.printStackTrace();
@@ -130,9 +135,8 @@ public class BattleRunner {
       num++;
     }
     
-    System.out.println("Getting all futures");
     getAllFutures(futures);
-    System.out.println("Got them");
+    System.out.println();
   }
 
 
@@ -184,6 +188,9 @@ public class BattleRunner {
   public void shutdown() {
     _threadPool.shutdown();
     _callbackPool.shutdown();
+    for (Process p : _allProcs) {
+    	p.destroy();
+    }
   }
 
   public interface BattleResultHandler {
@@ -241,7 +248,7 @@ public class BattleRunner {
 	}
 
     private void reinitialize() {
-    	System.out.print(_commandMapping);
+    	//System.out.print(_commandMapping);
     	String path = _commandMapping.remove(battleProcess);
 		if (path == null) throw new RuntimeException("Can't get path");
 		
@@ -255,17 +262,11 @@ public class BattleRunner {
 		
 		battleProcess.destroy();
 		battleProcess = initEngine2(path, _jvmArgs);
-		System.out.println("New process " + battleProcess + " created");
+		//System.out.println("New process " + battleProcess + " created");
+		System.out.print("!");
 		_commandMapping.put(battleProcess, path);
-		System.out.print(_commandMapping);
-		
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+		//System.out.print(_commandMapping);
+
 		writer = new BufferedWriter(
 				new OutputStreamWriter(battleProcess.getOutputStream()));
 		reader = new BufferedReader(
@@ -305,7 +306,7 @@ public class BattleRunner {
 		      writer.append(COMMA_JOINER.join(new BotList(bots).getBotNames()) + "\n");
 		      writer.flush();
     	  } catch (IOException e) {
-    		  System.out.println("Output stream problem detected, restarting");
+    		  //System.out.println("Output stream problem detected, restarting");
     		  reinitialize();
     		  i--;
     		  break;
@@ -329,16 +330,18 @@ public class BattleRunner {
 		        	System.out.println(input);
 		        }
 	    	} catch (TimeoutException e) {
-	    		System.out.println("We haven't heard from a process in a while, terminating " +battleProcess+ "and restarting (will skip this tree).");
-	    		System.out.println(t);
+	    		//System.out.println();
+	    		//System.out.println("We haven't heard from a process in a while, terminating " +battleProcess+ "and restarting (will skip this tree).");
+	    		//System.out.println(t);
 	    		
 	    		reinitialize();
 	    		
 	    		cont = true;
 	    		break;
 	    	} catch (ExecutionException e) {
-	    		System.out.println("Execution exception");
-	    		e.printStackTrace();
+	    		//System.out.println();
+	    		//System.out.println("Execution exception");
+	    		//e.printStackTrace();
 	    		reinitialize();
 	    		cont = true;
 	    		break;
@@ -353,7 +356,6 @@ public class BattleRunner {
 
 	      System.out.print(".");
 	      //System.out.println("going to callback pool");
-	      Thread.sleep(10);
 	      _callbackPool.submit(new Runnable() {
 	        @Override
 	        public void run() {
@@ -368,7 +370,7 @@ public class BattleRunner {
 	      //System.out.println("outputting result");
 	      results.add(result);
       }
-      
+      System.out.print("$");
       return results;
     }
   }

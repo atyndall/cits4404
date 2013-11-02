@@ -32,6 +32,8 @@ public class GABot extends AdvancedRobot implements IBasicEvents {
 	private GATree actionTree;
 	private FileOutputStream fout;
 	
+	private double gunTurnVariance;
+	
 	public GABot(int num) {
 		try {
 			this.fout = new FileOutputStream(Config.logLoc + num + ".log");
@@ -61,8 +63,9 @@ public class GABot extends AdvancedRobot implements IBasicEvents {
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
 		setAdjustGunForRobotTurn(true);
-		setAhead(Double.POSITIVE_INFINITY);
+		
 		do{
+			gunTurnVariance = 0;
 			
 			eventsCounter.newRound();
 			actionTree.evaluate();
@@ -96,7 +99,7 @@ public class GABot extends AdvancedRobot implements IBasicEvents {
 	        // Absolute bearing to target
 	        getHeadingRadians() + e.getBearingRadians()
 	        // Subtract current radar heading to get turn required
-	        - getGunHeadingRadians();
+	        - getGunHeadingRadians() + gunTurnVariance;
 	 
 	    setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
 	    setTurnGunRightRadians(Utils.normalRelativeAngle(gunTurn));
@@ -122,7 +125,7 @@ public class GABot extends AdvancedRobot implements IBasicEvents {
 		setBack(Utils.getRandom().nextInt(half) + 36);
 		setTurnRight(Utils.getRandom().nextInt(360));
 		setResume();
-		setAhead(Double.POSITIVE_INFINITY);
+		setAhead(30);
 	}
 	
 	public void onHitByBullet(HitByBulletEvent e) {
@@ -138,6 +141,10 @@ public class GABot extends AdvancedRobot implements IBasicEvents {
 		if (e.isMyFault()) {
 			backoff();
 		}
+	}
+
+	public void setGunTurnVariance(double amount) {
+		this.gunTurnVariance = amount;
 	}
 
 }

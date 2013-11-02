@@ -5,6 +5,7 @@
 *.war
 *.ear
 
+output/
 *.log
 *.ser
 .classpath
