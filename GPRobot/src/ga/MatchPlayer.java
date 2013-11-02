@@ -1,24 +1,40 @@
 package ga;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import robocode.BattleResults;
+import robowiki.runner.BattleRunner;
+import robowiki.runner.BattleRunner.BattleResultHandler;
+import robowiki.runner.BotList;
+import robowiki.runner.RobotScore;
+
 public class MatchPlayer {
 	boolean verbose;
 	boolean visible;
 	Queue<GATree> treesToTest;
+	BattleRunner br;
 	
-	public static final int numThreads = 6;
-	private ExecutorService pool;
+	public static final String[] robocodePaths = {
+		Config.robocodeLoc + 1,
+		Config.robocodeLoc + 2,
+		Config.robocodeLoc + 3,
+		Config.robocodeLoc + 4,
+		Config.robocodeLoc + 5,
+		Config.robocodeLoc + 6
+	};
 	
 	public MatchPlayer() {
 		this(false, false);
@@ -28,82 +44,64 @@ public class MatchPlayer {
 		this.visible = visible;
 		this.verbose = verbose;
 		this.treesToTest = new LinkedList<GATree>();
-		this.pool = Executors.newFixedThreadPool(numThreads);
+		Set<String> robots = new HashSet<String>(Arrays.asList(robocodePaths));
+		this.br = new BattleRunner(robots, "-Xmx512M -Djava.security.manager -Djava.security.policy==/home/atyndall/.java.policy -Dsun.io.useCanonCaches=false -DNOSECURITY=true -Ddebug=true", 5, 800, 600);
 	}
 	
 	public Map<GATree, Integer> run() {
-		int numPer = treesToTest.size() / numThreads;
-		List<GATree[]> queuedTrees = new LinkedList<GATree[]>();
-		for (int j = 1; j <= numThreads; j++) {
-			List<GATree> nl = new LinkedList<GATree>();
-			for (int i = 0; i < numPer; i++) {
-				if (treesToTest.size() == 0) break;
-				nl.add(treesToTest.remove());
-			}
-			
-			if (j == numThreads && treesToTest.size() != 0) {
-				for (GATree t : treesToTest) nl.add(t);
-				treesToTest.clear();
-			}
-			
-			if (nl.size() > 0) {
-				queuedTrees.add(nl.toArray(new GATree[nl.size()]));
-			}
-		}
-		
-		List<CallableMatchPlayer> matches = new LinkedList<CallableMatchPlayer>();
-		
-		List<Future<Map<GATree, Integer>>> futures = new ArrayList(numThreads);
-		int num = 1;
-		for (GATree[] trees : queuedTrees) {
-			futures.add(pool.submit(new CallableMatchPlayer(visible, verbose, trees, num)));
-		}
-		
-		
-//		try {
-//			futures = pool.invokeAll(matches);
-//			//pool.awaitTermination(10, TimeUnit.MINUTES);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//			System.exit(1);
-//			return null;
-//		}
-//		
 		Map<GATree, Integer> m = new HashMap<GATree, Integer>();
-		
-		
-		for(Future<Map<GATree, Integer>> f : futures) {
-			try {
-				Map<GATree, Integer> ret = f.get();
-				m.putAll(ret);
-			} catch (InterruptedException | ExecutionException e) {
-				e.printStackTrace();
-				System.exit(1);
-			}
-		}
-		//boolean allDone = false;
-		//while (!allDone) {
-			//allDone = true;
-			//for(Future<Map<GATree, Integer>> f : futures) {
-				//if (f.isDone()) {
-				//	try {
-				//		m.putAll(f.get());
-				//		System.out.println("Thread complete");
-				//	} catch (InterruptedException | ExecutionException e) {
-				//		e.printStackTrace();
-				//		return null;
-				//	}
-				//} else {
-				//	allDone = false;
-				//}
-		//	}
-		//}
+		System.out.println(treesToTest.size());
+		br.runBattles((List<GATree>)treesToTest, new BotList("sample.Walls"), new resultsHandler(m));
 		
 		return m;
 	}
 	
 	public void enqueueTree(GATree tree) {
 		treesToTest.add(tree);
+	}
+	
+	private class resultsHandler implements BattleResultHandler {
+		private Map<GATree, Integer> res;
+		
+		public resultsHandler(Map<GATree, Integer> res) {
+			this.res = res;
+		}
+		
+		public void processResults(GATree t, List<RobotScore> robotScores,
+				long elapsedTime) {
+			int score = fitnessFromResult(robotScores);
+			//System.out.println("Score: " + score);
+			res.put(t, score);
+		}
+		
+		private int fitnessFromResult(List<RobotScore> br) {
+			int theirs = -1;
+			int ours = -1;
+			
+			if (br.get(0).botName.equals("sample.Walls")) {
+				theirs = 0;
+				ours = 1;
+			} else if (br.get(1).botName.equals("sample.Walls")) {
+				theirs = 1;
+				ours = 0;
+			} else {
+				throw new RuntimeException("Don't know whats going on");
+			}
+			
+			long ourScore = Math.round(br.get(ours).score);
+			long theirScore = Math.round(br.get(theirs).score);
+
+			if (ourScore == 0 && theirScore == 0) {
+				return 0;
+			} else if (ourScore == 0 && theirScore > 0) {
+				return (int) (-1 * theirScore);
+			} else if (theirScore == 0 && ourScore > 0) {
+				return (int) ourScore;
+			} else {
+				return (int) (ourScore - theirScore);
+			}
+		}
+		
 	}
 	
 }

@@ -5,6 +5,7 @@
 *.war
 *.ear
 
+*.log
 *.ser
 .classpath
 *.pydevproject

@@ -78,6 +78,12 @@ public class GATree implements Serializable {
 		root.evaluate();
 	}
 	
+	public int size() {
+		List<Node> l = new LinkedList<Node>();
+		getNodeList(l, root);
+		return l.size();
+	}
+	
 	public List<Node> getNodeList() {
 		LinkedList<Node> l = new LinkedList<Node>();		
 		getNodeList(l, this.root);

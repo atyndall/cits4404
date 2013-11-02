@@ -12,20 +12,10 @@ public class EvolveOut {
 
 	public static void main(String[] args) {
 		GASystem sys = new GASystem(false, false);
-		System.out.println("Evolving for 5 generations");
-		List<GATree> res = sys.evolve(5);
+		System.out.println("Evolving for 100 generations");
+		List<GATree> res = sys.evolve(100);
 		
-		try {
-			FileOutputStream fileOut = new FileOutputStream(Config.finalOut);
-			ObjectOutputStream out = new ObjectOutputStream(fileOut);
-			out.writeObject(res);
-			out.close();
-			fileOut.close();
-			System.out.printf("Serialized data is saved in " + Config.finalOut);
-	    } catch(IOException i) {
-	        i.printStackTrace();
-	        System.exit(1);
-	    }
+		
 		
 	}
 }

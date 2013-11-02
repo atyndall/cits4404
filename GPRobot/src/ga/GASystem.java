@@ -4,6 +4,9 @@ package ga;
 
 import ga.actions.ActionNode;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -228,12 +231,27 @@ public class GASystem {
 			}
 			
 			System.out.println("Applying fitness function");
-			setFitnesses(trees);
+			if (x != 0) {
+				setFitnesses(trees);
+			}
 			setFitnesses(nextgen);
 			Map<GATree, Integer> allfit = getFitness();
 			System.out.println();
 			
 			fitnessStats(allfit);
+			
+			try {
+				FileOutputStream fileOut = new FileOutputStream(Config.finalOut + x + ".ser");
+				ObjectOutputStream out = new ObjectOutputStream(fileOut);
+				out.writeObject(trees);
+				out.close();
+				fileOut.close();
+				System.out.printf("Serialized data is saved in " + Config.finalOut);
+		    } catch(IOException i) {
+		        i.printStackTrace();
+		        //System.exit(1);
+		    }
+			
 			
 			trees.clear();
 			for (GATree t : topX(allfit, 100)) trees.add(t);

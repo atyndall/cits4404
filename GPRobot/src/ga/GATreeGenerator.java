@@ -9,10 +9,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 
 public class GATreeGenerator {
 	
@@ -128,8 +130,41 @@ public class GATreeGenerator {
 		}
 	}
 	
+	public boolean treeHasCycles(GATree t) {
+		return treeHasCycles(new HashSet<Node>(), t.getRoot());
+	}
+	
+	private boolean treeHasCycles(Set<Node> seenNodes, Node t) {
+		if (t != null) {
+			if (seenNodes.contains(t)) {
+				return true;
+			} else {
+				seenNodes.add(t);
+				
+				boolean hasCycles = false;
+				for (Node c : t.getChildren()) {
+					if (c != null) {
+						if (treeHasCycles(seenNodes, c)) {
+							hasCycles = true;
+						}
+					}
+				}
+				return hasCycles;
+			}
+		} else {
+			return false;
+		}
+	}
+	
 	public GATree makeRandomTree() {
-		GATree t = new GATree(makeRandomTree(getRandomNode(), 0, 3));
+		GATree t;
+		boolean hasCycles;
+		do {
+			t = new GATree(makeRandomTree(getRandomNode(), 0, 3));
+			hasCycles = treeHasCycles(t);
+			if (hasCycles) System.out.println("Found cycles, regen");
+		} while (hasCycles);
+		
 		assert(t.getRoot() != null);
 		return t;
 	}
