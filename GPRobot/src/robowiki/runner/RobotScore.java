@@ -1,5 +1,6 @@
 package robowiki.runner;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -12,7 +13,7 @@ import com.google.common.collect.Lists;
  *
  * @author Voidious
  */
-public class RobotScore {
+public class RobotScore implements Serializable {
   public static final Function<RobotScore, Double> NORMAL_SCORER =
       new Function<RobotScore, Double>() {
         @Override

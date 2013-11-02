@@ -13,6 +13,9 @@ public final class Config implements Serializable {
 	public final double mutationRate = 0.95;
 	public final double randomNodeChance = 0.8;
 	
+	public final int genMinNodes = 3;
+	public final int genMaxNodes = 10;
+	
 	public final Map<String, Double> decisions = new HashMap<String, Double>() {
 		{
 		  //put("BulletHitGT", 		1.0);

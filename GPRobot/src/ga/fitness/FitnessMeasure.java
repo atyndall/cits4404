@@ -1,10 +1,11 @@
 package ga.fitness;
 
+import java.io.Serializable;
 import java.util.List;
 
 import robowiki.runner.RobotScore;
 
-public abstract class FitnessMeasure {
+public abstract class FitnessMeasure implements Serializable {
 	RobotScore yourRobot;
 	RobotScore enemyRobot;
 	
