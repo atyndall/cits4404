@@ -295,7 +295,7 @@ public class BattleRunner {
       //for (final GATree t : trees) {
     	  
     	  final GATree t = trees.get(i);
-    	  toFile(Config.serializedLoc + _threadNum + ".ser", t);
+    	  toFile(Config.get().serializedLoc + _threadNum + ".ser", t);
     	  
     	  List<String> bots = new ArrayList<String>(botList.getBotNames());
     	  bots.add("ga.botthreads.ThreadedGABot" + _threadNum + "*");

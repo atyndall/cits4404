@@ -14,7 +14,7 @@ public class EvolveOut {
 
 	public static void main(String[] args) throws IOException {
 		Date date = new Date();
-		File outdir = new File(Config.outDir + date.getTime());
+		File outdir = new File(Config.get().outDir + date.getTime());
 		if (!outdir.mkdir()) throw new IOException("Couldn't make dir");
 		
 		System.out.println("Outputting data to " + outdir.getAbsolutePath());

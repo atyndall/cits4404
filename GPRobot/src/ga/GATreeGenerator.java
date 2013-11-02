@@ -18,41 +18,6 @@ import java.util.Set;
 
 public class GATreeGenerator {
 	
-	private static Map<String, Double> decisions = new HashMap<String, Double>() {
-		{
-		  //put("BulletHitGT", 		1.0);
-		  //put("BulletHitLT", 		1.0);
-			put("BulletHitTR", 		1.0);
-			put("BulletMissedTR",	1.0);
-		  //put("EnergyGT", 		1.0);
-			put("EnergyLT", 		1.0);
-		  //put("GunHeatGT",		0.0);
-		  //put("GunHeatLT", 		0.0);
-			put("GunHeatAllowFire",	1.0);
-		  //put("HitByBulletGT", 	1.0);
-		  //put("HitByBulletLT", 	1.0);
-			put("HitByBulletTR", 	1.0);
-		  //put("HitRobotGT", 		1.0);
-			put("HitRobotLT", 		1.0);
-			put("HitRobotTR", 		1.0);
-			put("ScannedRobotTR", 	1.0);
-		  //put("VelocityGT", 		1.0);
-			put("VelocityLT", 		1.0);
-		}
-	};
-	
-	private static Map<String, Double> actions = new HashMap<String, Double>() {
-		{
-		    put("Ahead", 			1.0);
-			put("Fire", 			1.0);
-		    put("Resume", 			0.2);
-		    put("Stop", 			0.2);
-		    put("VaryGun", 			0.4);
-		    put("TurnLeft", 		1.0);
-		  //put("TurnRadarLeft", 	1.0);
-		}
-	};
-	
 	private List<Constructor<DecisionNode>> decisionConstructors;
 	private List<Constructor<ActionNode>> actionConstructors;
 	private List<Double> decisionProbs;
@@ -61,7 +26,7 @@ public class GATreeGenerator {
 	private Random rnd;
 	
 	protected Node getRandomNode() {
-		if (rnd.nextDouble() < 0.8) {
+		if (rnd.nextDouble() < Config.get().randomNodeChance) {
 			return getRandomAction();
 		} else {
 			return getRandomDecision();
@@ -74,7 +39,7 @@ public class GATreeGenerator {
 		double selectprob;
 		
 		do {
-			int index = rnd.nextInt(actions.size());
+			int index = rnd.nextInt(Config.get().actions.size());
 			c = actionConstructors.get(index);
 			prob = actionProbs.get(index);
 			selectprob = rnd.nextDouble();
@@ -92,7 +57,7 @@ public class GATreeGenerator {
 	}
 	
 	protected DecisionNode getRandomDecision() {
-		int index = rnd.nextInt(decisions.size());
+		int index = rnd.nextInt(Config.get().decisions.size());
 		Constructor<DecisionNode> c = decisionConstructors.get(index);
 		
 		try {
@@ -109,17 +74,17 @@ public class GATreeGenerator {
 	private void populateConstructorLists() {
 		
 		try {			
-			decisionConstructors = new ArrayList<Constructor<DecisionNode>>(decisions.size());
-			decisionProbs = new ArrayList<Double>(decisions.size());
-			for (Entry<String, Double> e : decisions.entrySet()) {
+			decisionConstructors = new ArrayList<Constructor<DecisionNode>>(Config.get().decisions.size());
+			decisionProbs = new ArrayList<Double>(Config.get().decisions.size());
+			for (Entry<String, Double> e : Config.get().decisions.entrySet()) {
 				Class<DecisionNode> cls = (Class<DecisionNode>) Class.forName("ga.decisions.concrete." + e.getKey());
 				decisionConstructors.add(cls.getConstructor());
 				decisionProbs.add(e.getValue());
 			}
 
-			actionConstructors = new ArrayList<Constructor<ActionNode>>(actions.size());
-			actionProbs = new ArrayList<Double>(actions.size());
-			for (Entry<String, Double> e : actions.entrySet()) {
+			actionConstructors = new ArrayList<Constructor<ActionNode>>(Config.get().actions.size());
+			actionProbs = new ArrayList<Double>(Config.get().actions.size());
+			for (Entry<String, Double> e : Config.get().actions.entrySet()) {
 				Class<ActionNode> cls = (Class<ActionNode>) Class.forName("ga.actions.concrete." + e.getKey());
 				actionConstructors.add(cls.getConstructor());
 				actionProbs.add(e.getValue());
@@ -160,7 +125,7 @@ public class GATreeGenerator {
 		GATree t;
 		boolean hasCycles;
 		do {
-			t = new GATree(makeRandomTree(getRandomNode(), 0, 3));
+			t = new GATree(makeRandomTree(getRandomNode(), 0, 10));
 			hasCycles = treeHasCycles(t);
 			if (hasCycles) System.out.println("Found cycles, regen");
 		} while (hasCycles);
@@ -170,7 +135,7 @@ public class GATreeGenerator {
 	}
 	
 	private Node makeRandomTree(Node n, int depth, int maxdepth) {
-		if (depth >= maxdepth || (depth > 1 && rnd.nextDouble() > 0.95) ) {
+		if (rnd.nextDouble() > ((1/maxdepth) * depth) ) {
 			return null;
 		}
 		

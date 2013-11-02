@@ -12,7 +12,7 @@ public class Ahead extends ActionNodeDoubleAmount {
 	}
 	
 	public static double GenRandom() {
-		double maxX = 50;
+		double maxX = 16;
 		double minX = 0;
 		return (double)(new Random().nextFloat() * (maxX - minX) + minX);
 	}
