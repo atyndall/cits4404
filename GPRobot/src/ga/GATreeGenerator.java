@@ -125,7 +125,7 @@ public class GATreeGenerator {
 		GATree t;
 		boolean hasCycles;
 		do {
-			t = new GATree(makeRandomTree(getRandomNode(), 0, 10));
+			t = new GATree(makeRandomTree(getRandomNode(), 0, 3, 10));
 			hasCycles = treeHasCycles(t);
 			if (hasCycles) System.out.println("Found cycles, regen");
 		} while (hasCycles);
@@ -134,14 +134,16 @@ public class GATreeGenerator {
 		return t;
 	}
 	
-	private Node makeRandomTree(Node n, int depth, int maxdepth) {
-		if (rnd.nextDouble() > ((1/maxdepth) * depth) ) {
+	private Node makeRandomTree(Node n, int depth, int mindepth, int maxdepth) {
+		double nxt = rnd.nextDouble();
+		double comp = (1.0/(double)(maxdepth-mindepth)) * (double)(depth-mindepth);
+		if (depth > mindepth && nxt <= comp ) {
 			return null;
 		}
 		
 		for (int i = 0; i < n.numChildren(); i++) {
 			Node rnode = getRandomNode();
-			n.setChild(i, makeRandomTree(rnode, depth + 1, maxdepth));
+			n.setChild(i, makeRandomTree(rnode, depth + 1, mindepth, maxdepth));
 			rnode.setParent(n);
 		}
 		

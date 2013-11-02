@@ -58,7 +58,7 @@ public class MatchPlayer {
 		Map<GATree, FitnessMeasure> m = new HashMap<GATree, FitnessMeasure>();
 		List<GATree> testing = new LinkedList<GATree>(treesToTest);
 		treesToTest.clear();
-		br.runBattles(testing, new BotList("sample.Walls"), new resultsHandler(m));
+		br.runBattles(testing, new BotList("sample.Walls"), new ResultsHandler(m));
 		br.shutdown();
 		return m;
 	}
@@ -67,10 +67,10 @@ public class MatchPlayer {
 		treesToTest.add(tree);
 	}
 	
-	public static class resultsHandler implements BattleResultHandler {
+	public class ResultsHandler implements BattleResultHandler {
 		private Map<GATree, FitnessMeasure> res;
 		
-		public resultsHandler(Map<GATree, FitnessMeasure> res) {
+		public ResultsHandler(Map<GATree, FitnessMeasure> res) {
 			this.res = res;
 		}
 		
