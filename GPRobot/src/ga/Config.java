@@ -16,6 +16,11 @@ public final class Config implements Serializable {
 	public final int genMinNodes = 3;
 	public final int genMaxNodes = 10;
 	
+	public final String fitnessMeasure = "rouletteWheel";
+	
+	public final int numGenerations = 100;
+	public final int numGenomes = 100;
+	
 	public final Map<String, Double> decisions = new HashMap<String, Double>() {
 		{
 		  //put("BulletHitGT", 		1.0);

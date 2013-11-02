@@ -11,6 +11,8 @@ import ga.GATree;
 
 
 public class EvolveOut {
+	
+	public static final int n = Config.get().numGenerations;
 
 	public static void main(String[] args) throws IOException {
 		Date date = new Date();
@@ -20,8 +22,8 @@ public class EvolveOut {
 		System.out.println("Outputting data to " + outdir.getAbsolutePath());
 		
 		GASystem sys = new GASystem(outdir, false, false);
-		System.out.println("Evolving for 100 generations");
-		List<GATree> res = sys.evolve(100);
+		System.out.println("Evolving for "+n+" generations");
+		List<GATree> res = sys.evolve(n);
 		
 		
 		

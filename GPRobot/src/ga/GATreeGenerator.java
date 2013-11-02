@@ -136,7 +136,7 @@ public class GATreeGenerator {
 	
 	private Node makeRandomTree(Node n, int depth, int mindepth, int maxdepth) {
 		double nxt = rnd.nextDouble();
-		double comp = (1.0/(double)(maxdepth-mindepth)) * (double)(depth-mindepth+5);
+		double comp = (1.0/(double)(maxdepth-mindepth)) * (double)(depth-mindepth);
 		if (depth > mindepth && nxt <= comp ) {
 			return null;
 		}

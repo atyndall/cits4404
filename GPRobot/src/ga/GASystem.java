@@ -154,7 +154,7 @@ public class GASystem {
 		return rMin + (valueScaled * rightSpan);
 	}
 	
-	public static List<TreeFitness> rouletteWheel(Map<GATree, FitnessMeasure> fitnessMap) {
+	public static TreeFitness[] rouletteWheel(Map<GATree, FitnessMeasure> fitnessMap) {
 		List<TreeFitness> s = GASystem.fitSort(fitnessMap);
 		
 		Map<TreeFitness, Double> prob = new HashMap<TreeFitness, Double>();
@@ -169,7 +169,7 @@ public class GASystem {
 			}
 		}
 		
-		return l;
+		return l.toArray(new TreeFitness[l.size()]);
 	}
 	
 	public static TreeFitness[] topX(Map<GATree, FitnessMeasure> fitnessMap, int x) {
@@ -223,9 +223,9 @@ public class GASystem {
 	public List<GATree> evolve(int generations) {
 		System.out.println("Generating random treesttt");
 		
-		setFitness(makeRandomTrees(100));
+		setFitness(makeRandomTrees(Config.get().numGenomes));
 		Map<GATree, FitnessMeasure> oldgen = getFitness();	
-		List<GATree> nextgen = new ArrayList<GATree>(100);
+		List<GATree> nextgen = new ArrayList<GATree>(Config.get().numGenomes);
 		
 		for (int x = 0; x <= generations; x++) {
 			System.out.println("GENERATION " + x);
@@ -255,8 +255,11 @@ public class GASystem {
 			System.out.println("Applying fitness function");
 			
 			setFitness(nextgen);
-			if (nextgen.size() != 100) {
-				int r = 100-nextgen.size();
+			int r = Math.abs(Config.get().numGenomes-nextgen.size());
+			if (nextgen.size() > Config.get().numGenomes) {
+				System.out.println("Too many trees, removing "+r+" randomly");
+				for (int i = 0; i < r; i++) nextgen.remove(0);
+			} else if (nextgen.size() < Config.get().numGenomes) {
 				System.out.println("Some trees short, generating "+r+" random ones");
 				setFitness(makeRandomTrees(r));
 			}
@@ -283,7 +286,22 @@ public class GASystem {
 			
 			
 			oldgen.clear();
-			for (TreeFitness t : topX(allfit, 100)) {
+			
+			TreeFitness[] fit;
+			switch (Config.get().fitnessMeasure) {
+			case "rouletteWheel":
+				fit = rouletteWheel(allfit);
+				break;
+				
+			case "topX":
+				fit = topX(allfit, Config.get().numGenomes);
+				break;
+				
+			default:
+				throw new RuntimeException("Unknown fitness measure");
+			}
+			
+			for (TreeFitness t : fit) {
 				oldgen.put(t.t, t.fitness);
 			}
 			System.out.println("Oldgen size; " + oldgen.size());
