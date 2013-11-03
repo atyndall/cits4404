@@ -1,7 +1,7 @@
+
+
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -14,6 +14,18 @@ public class EvolveOut {
 	
 	public static final int n = Config.get().numGenerations;
 
+	// Run with command line params:
+	// -Xmx512M -Dsun.io.useCanonCaches=false -DNOSECURITY=true
+	// -Ddebug=true -Djava.security.manager
+	// -Djava.security.policy==/path/to/.java.policy
+	
+	// .java.policy must be:
+	// grant {
+	//		permission java.security.AllPermission;
+	// };
+	
+	// dependencies include "robocode" libraries, and Google Guava 12.0.1
+	
 	public static void main(String[] args) throws IOException {
 		Date date = new Date();
 		File outdir = new File(Config.get().outDir + date.getTime());
@@ -23,7 +35,7 @@ public class EvolveOut {
 		
 		GASystem sys = new GASystem(outdir, false, false);
 		System.out.println("Evolving for "+n+" generations");
-		List<GATree> res = sys.evolve(n);
+		sys.evolve(n);
 		
 		
 		

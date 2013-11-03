@@ -52,13 +52,13 @@ public class MatchPlayer {
 	}
 	
 	public Map<GATree, FitnessMeasure> run() {
-		BattleRunner br = new BattleRunner(robots, "-Xmx512M -Djava.security.manager -Djava.security.policy==/home/atyndall/.java.policy -Dsun.io.useCanonCaches=false -DNOSECURITY=true -Ddebug=true", 5, 800, 600);
+		BattleRunner br = new BattleRunner(robots, "-Xmx512M -Djava.security.manager -Djava.security.policy==" + Config.get().javaPolicyLoc + " -Dsun.io.useCanonCaches=false -DNOSECURITY=true -Ddebug=true", 5, 800, 600);
 		System.out.println();
 		System.out.println("System initialized");
 		Map<GATree, FitnessMeasure> m = new HashMap<GATree, FitnessMeasure>();
 		List<GATree> testing = new LinkedList<GATree>(treesToTest);
 		treesToTest.clear();
-		br.runBattles(testing, new BotList(Config.get().opponent), new ResultsHandler(m));
+		br.runBattles(testing, new BotList("sample.Walls"), new ResultsHandler(m));
 		br.shutdown();
 		return m;
 	}

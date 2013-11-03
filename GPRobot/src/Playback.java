@@ -1,27 +1,15 @@
+
+
 import java.io.BufferedReader;
-import java.io.Console;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-  
-
-
-
-
-
-
-
-
-
-
 import java.util.Map.Entry;
 
 import robocode.BattleResults;
@@ -41,17 +29,27 @@ import robocode.control.events.RoundEndedEvent;
 import robocode.control.events.RoundStartedEvent;
 import robocode.control.events.TurnEndedEvent;
 import robocode.control.events.TurnStartedEvent;
-import robowiki.runner.RobotScore;
 import ga.Config; 
-import ga.GASystem; 
 import ga.GATree; 
-import ga.MatchPlayer; 
+import ga.fitness.FitnessMeasure;
   
   
 public class Playback { 
 	
-	public static final String fileToRead = "/home/atyndall/workspace/cits4404/output/1383396667560/gen_999.ser";
-	public static final boolean summary = true;
+	// Run with command line params:
+	// -Xmx512M -Dsun.io.useCanonCaches=false -DNOSECURITY=true
+	// -Ddebug=true -Djava.security.manager
+	// -Djava.security.policy==/path/to/.java.policy
+	
+	// .java.policy must be:
+	// grant {
+	//		permission java.security.AllPermission;
+	// };
+	
+	// dependencies include "robocode" libraries, and Google Guava 12.0.1
+	
+	public static final String fileToRead = "/home/atyndall/workspace/cits4404/GPRobot/output/sample/gen_1.ser";
+	public static final boolean summary = true; // generate summary data; run with true once, then with false once
   
 	 
 	 
@@ -74,22 +72,11 @@ public class Playback {
 			return l;
 		}
 	
+	
+	 
     public static void main(String[] args) throws IOException { 
-        List<GATree> trees; 
-  
-        try { 
-            FileInputStream fileIn = new FileInputStream(fileToRead); 
-            ObjectInputStream in = new ObjectInputStream(fileIn); 
-            trees = (List<GATree>) in.readObject(); 
-            in.close(); 
-            fileIn.close(); 
-        } catch(IOException i) { 
-            i.printStackTrace(); 
-            return; 
-        } catch(ClassNotFoundException c) { 
-            c.printStackTrace(); 
-            return; 
-        } 
+        Map<GATree, FitnessMeasure> trees; 
+        List<ScoreInfo> sscores;
         
         RobocodeEngine feng;
         BattlefieldSpecification battlefield;
@@ -98,17 +85,30 @@ public class Playback {
         BattleSpecification battle;
           
         if (summary) {
+        	try { 
+                FileInputStream fileIn = new FileInputStream(fileToRead); 
+                ObjectInputStream in = new ObjectInputStream(fileIn); 
+                trees = (Map<GATree, FitnessMeasure>) in.readObject(); 
+                in.close(); 
+                fileIn.close(); 
+            } catch(IOException i) { 
+                i.printStackTrace(); 
+                return; 
+            } catch(ClassNotFoundException c) { 
+                c.printStackTrace(); 
+                return; 
+            } 
+        	
 	       feng = new RobocodeEngine (new File(Config.get().robocodeLoc + 1));;
 	       
 	        int i = 0;
 	        List<ScoreInfo> scores = new ArrayList<ScoreInfo>(trees.size());
 	        System.out.println("Calculating fitness");
-	        for (GATree t : trees) {
+	        for (Entry<GATree, FitnessMeasure> t : trees.entrySet()) {
 	        	battlefield = new BattlefieldSpecification();
-	        	feng.addBattleListener(new ScorePrinter(i, t, scores));
+	        	feng.addBattleListener(new ScorePrinter(i, t.getKey(), scores));
 	        	specs = feng.getLocalRepository("ga.botthreads.ThreadedGABot"+1+"*,sample.Walls");
-	            
-	            Config.toFile(Config.get().serializedLoc + 1 + ".ser", t);
+	            Config.toFile(Config.get().serializedLoc + 1 + ".ser", t.getKey());
 	            battle = new BattleSpecification(15, 450, 0.1, battlefield, specs);
 	            feng.runBattle(battle);
 	            feng.waitTillBattleOver();
@@ -119,21 +119,39 @@ public class Playback {
 	        feng.close();
 	        
 	        
-	        List<ScoreInfo> sscores = fitSort(scores);
+	        sscores = fitSort(scores);
 	        
 	        System.out.println("Top 5 scores");
 	        for (int j = 0; j < 5; j++) {
 	        	ScoreInfo s = sscores.get(j);
-	        	System.out.println(s.num + ": " + s.fitness + " (" + s.ours + " vs " + s.theirs + " )");
+	        	System.out.println(j + ": " + s.fitness + " (" + s.ours + " vs " + s.theirs + " )");
 	        }
 	        
 	        System.out.println("Bottom 5 scores");
 	        for (int j = trees.size() - 1; j > (trees.size() - 5); j--) {
 	        	ScoreInfo s = sscores.get(j);
-	        	System.out.println(s.num + ": " + s.fitness + " (" + s.ours + " vs " + s.theirs + " )");
+	        	System.out.println(j + ": " + s.fitness + " (" + s.ours + " vs " + s.theirs + " )");
 	        }
 	        
+	        Config.toFile(Config.get().outDir + "playback.ser", sscores);
+	        System.out.println("Written out playback file, run simulation again with summary=false");
+	        
         } else {
+        	
+        	try { 
+                FileInputStream fileIn = new FileInputStream(Config.get().outDir + "playback.ser"); 
+                ObjectInputStream in = new ObjectInputStream(fileIn); 
+                sscores = (List<ScoreInfo>) in.readObject(); 
+                in.close(); 
+                fileIn.close(); 
+            } catch(IOException i) {
+            	System.out.println("Run with summary=true to get a playback file to use");
+                i.printStackTrace(); 
+                return; 
+            } catch(ClassNotFoundException c) { 
+                c.printStackTrace(); 
+                return; 
+            } 
 
 	        while (true) {
 	        	BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -146,7 +164,7 @@ public class Playback {
 	        	specs = feng.getLocalRepository("ga.botthreads.ThreadedGABot"+1+"*,sample.Walls");
 		        battle = new BattleSpecification(3, 450, 0.1, battlefield, specs);
 		        feng.setVisible(true);
-		        Config.toFile(Config.get().serializedLoc + 1 + ".ser", trees.get(view));
+		        Config.toFile(Config.get().serializedLoc + 1 + ".ser", sscores.get(view).t);
 		        feng.runBattle(battle);
 		        feng.waitTillBattleOver();
 		        feng.close();
@@ -163,7 +181,7 @@ public class Playback {
         }
     } 
     
-    public static class ScoreInfo {
+    public static class ScoreInfo implements Serializable {
     	public final GATree t;
     	public final int num;
     	public final int fitness;
