@@ -50,8 +50,8 @@ import ga.MatchPlayer;
   
 public class Playback { 
 	
-	public static final String fileToRead = "/home/atyndall/workspace/cits4404/output/1383378239936/100.ser";
-	public static final boolean summary = false;
+	public static final String fileToRead = "/home/atyndall/workspace/cits4404/output/1383396667560/gen_999.ser";
+	public static final boolean summary = true;
   
 	 
 	 

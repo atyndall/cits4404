@@ -19,29 +19,29 @@ public final class Config implements Serializable {
 	public final String fitnessMeasure = "topX";
 	
 	public final int numGenerations = 100;
-	public final int numGenomes = 1000;
+	public final int numGenomes = 100;
 	
 	public final String opponent = "sample.Walls";
 	
 	public final Map<String, Double> decisions = new HashMap<String, Double>() {
 		{
-		  //put("BulletHitGT", 		1.0);
-		  //put("BulletHitLT", 		1.0);
+		    put("BulletHitGT", 		1.0);
+		    put("BulletHitLT", 		1.0);
 			put("BulletHitTR", 		1.0);
 			put("BulletMissedTR",	1.0);
-		  //put("EnergyGT", 		1.0);
+		    put("EnergyGT", 		1.0);
 			put("EnergyLT", 		1.0);
 		  //put("GunHeatGT",		0.0);
 		  //put("GunHeatLT", 		0.0);
-	      //put("GunHeatAllowFire",	1.0);
-		  //put("HitByBulletGT", 	1.0);
-		  //put("HitByBulletLT", 	1.0);
+	        put("GunHeatAllowFire",	1.0);
+		    put("HitByBulletGT", 	1.0);
+		    put("HitByBulletLT", 	1.0);
 			put("HitByBulletTR", 	1.0);
-		  //put("HitRobotGT", 		1.0);
+		    put("HitRobotGT", 		1.0);
 			put("HitRobotLT", 		1.0);
 			put("HitRobotTR", 		1.0);
-		  //put("ScannedRobotTR", 	1.0);
-		  //put("VelocityGT", 		1.0);
+		    put("ScannedRobotTR", 	1.0);
+		    put("VelocityGT", 		1.0);
 			put("VelocityLT", 		1.0);
 		}
 	};
