@@ -5,8 +5,11 @@
 	<property name="robotdir" value="../robocode/robots"/>
 	
 	<target name="exportRobot">
-		<copy file="${bindir}/neuro/NeuroBot.class" todir="${robotdir}/neuro"/>
-		<copy file="${bindir}/neuro/ScanningBot.class" todir="${robotdir}/neuro"/>
+		<copy todir="${robotdir}/neuro">
+					<fileset dir="${bindir}/neuro">
+						<include name="*.class"/>
+					</fileset>
+		</copy>
 		<copy todir="${robotdir}/neuroFuzzy">
 			<fileset dir="${bindir}/neuroFuzzy">
 				<include name="*.class"/>

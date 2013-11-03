@@ -11,13 +11,12 @@ public class Util {
 		return rand.nextDouble()*(max-min) + min;
 	}
 
-	public static int uniformInt(double min, double max) {
+	public static int uniformInt(int min, int max) {
 		Random rand = new Random();
-		return (int)min + rand.nextInt((int)(max - min)+1);
+		return min + rand.nextInt(max - min +1);
 	}
 	
 	public static int choose(int[] a) {
-		Random rand = new Random();
 		return a[Util.uniformInt(0, a.length)];
 	}
 	
@@ -26,6 +25,10 @@ public class Util {
 		for(int i = 0; i < Math.min(a.size(), b.size()); i++)
 			out.add(a.get(i)*b.get(i));
 		return out;
+	}
+	
+	public static double newWeight() {
+		return uniformDouble(-1,1);
 	}
 	
 }

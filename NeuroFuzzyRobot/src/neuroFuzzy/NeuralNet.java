@@ -30,8 +30,9 @@ public class NeuralNet {
 		int outCount = 0;
 		for(NodeGene n : genome.nodes) {
 			//link up the output collectors to the bottom most hidden nodes
+			//System.out.println("NN Adding node " + n);
 			if(n.type == NodeGene.OUTPUT) {
-				HiddenNeuron neu = new HiddenNeuron(n.id, new GaussianActivation(0, 0.5));
+				HiddenNeuron neu = new HiddenNeuron(n.id, new SigmoidActivation(4.9));
 				neu.addChild(outputNeurons.get(outCount),1.0);
 				outCount++;
 				hiddenNeurons.put(n.id, neu);
@@ -40,12 +41,13 @@ public class NeuralNet {
 				InputNeuron neu = new InputNeuron(n.id);
 				inputNeurons.add(neu);
 			} else if(n.type == NodeGene.HIDDEN) {
-				HiddenNeuron neu = new HiddenNeuron(n.id, new GaussianActivation(0,0.5));
+				HiddenNeuron neu = new HiddenNeuron(n.id, new SigmoidActivation(4.9));
 				hiddenNeurons.put(n.id, neu);
 			} else if(n.type == NodeGene.BIAS) {
 				biasNeuron = new BiasNeuron();
 			}
 		}
+		//System.out.println();
 		
 		//Connect everything
 		for(ConnectionGene cg : genome.connections) {
@@ -69,7 +71,7 @@ public class NeuralNet {
 				else
 					in = getOutputNeuron(cg.in,outputNeurons);
 				if(in == null) {
-					System.out.println("IN: GOD DAMN IT");
+					System.out.println("IN: Couldn't find " + cg.in);
 					System.exit(0);
 				}
 				
@@ -95,6 +97,7 @@ public class NeuralNet {
 	public double[] output(double input[]) {
 		loadInput(input);
 		PriorityQueue<Neuron> queue = new PriorityQueue<Neuron>(11, new ProcessOrderingComparator());
+		List<Neuron> seen = new ArrayList<Neuron>();
 		//Do the bias first
 		biasNeuron.output();
 		queue.addAll(inputNeurons);
@@ -103,8 +106,10 @@ public class NeuralNet {
 			//System.out.println("Processing: " + n.id);
 			n.output();
 			for(Neuron c : n.children)
-				if(!queue.contains(c))
+				if(!queue.contains(c) && !seen.contains(c)) {
 					queue.add(c);
+					seen.add(c);
+				}
 		}
 		double[] out = new double[outputNeurons.size()];
 		for(int i = 0; i < out.length; i++) {

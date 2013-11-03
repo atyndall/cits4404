@@ -18,13 +18,13 @@ public class ConnectionGene implements java.io.Serializable, java.lang.Comparabl
 	}
 	
 	@Override
-	public boolean equals(Object o) {
-		ConnectionGene g = (ConnectionGene)o;
+	public boolean equals(Object obj) {
+		ConnectionGene g = (ConnectionGene)obj;
 		return out == g.out && in == g.in;
 	}
 	
 	public String toString() {
-		return out + "->"  + in;
+		return out + "->"  + in + "(" + innov + ")";
 	}
 	
 	public void disable() {
@@ -35,5 +35,10 @@ public class ConnectionGene implements java.io.Serializable, java.lang.Comparabl
 	public int compareTo(Object o) {
 		ConnectionGene g = (ConnectionGene)o;
 		return this.innov - g.innov;
+	}
+	
+	@Override
+	public ConnectionGene clone() {
+		return new ConnectionGene(out,in,weight,enabled,innov);
 	}
 }

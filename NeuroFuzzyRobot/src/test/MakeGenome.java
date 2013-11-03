@@ -20,10 +20,11 @@ import neuroFuzzy.*;
 
 public class MakeGenome {
 
-	final static String genomeFile = "../robocode/robots/neuro/NeuroBot.data/genome.ser";
+	final static String robotName = "NeuroTargetingBot";
+	final static String genomeFile = "../robocode/robots/neuro/" + robotName + ".data/genome.ser";
 	
 	public static void main(String[] args) {
-		Genome g = new Genome(NeuroBot.numInputs,NeuroBot.numOutputs,3,10,20,1.0);
+		Genome g = new Genome(NeuroTargetingBot.numInputs,NeuroTargetingBot.numOutputs);
 		try {
 			FileOutputStream fileOut = new FileOutputStream(genomeFile);
 			ObjectOutputStream out = new ObjectOutputStream(fileOut);

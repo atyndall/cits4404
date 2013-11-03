@@ -13,12 +13,12 @@ public class NodeGene implements java.io.Serializable {
 	
 	public int id;
 	public int type;
-	public List<NodeGene> possibleOutputs;
+	public List<Integer> possibleOutputs;
 	
-	public NodeGene(int id, int type, List<NodeGene> possibleOutputs) {
+	public NodeGene(int id, int type, List<Integer> possibleOutputs) {
 		this.id = id;
 		this.type = type;
-		this.possibleOutputs = new ArrayList<NodeGene>(possibleOutputs);
+		this.possibleOutputs = new ArrayList<Integer>(possibleOutputs);
 	}
 	
 	@Override
@@ -40,18 +40,27 @@ public class NodeGene implements java.io.Serializable {
 			out += "BIAS ";
 		}
 		for(int i = 0; i < possibleOutputs.size(); i++) {
-			NodeGene n = possibleOutputs.get(i);
-			out += n.id;
+			int n = possibleOutputs.get(i);
+			out += n;
 			if(i < possibleOutputs.size()-1)
 				out += ",";
 		}
 		return out;
 	}
 	
-	public void addOutput(NodeGene g) {
-		possibleOutputs.add(g);
+	public void addOutput(int g) {
+		if(!possibleOutputs.contains(g))
+			possibleOutputs.add(g);
 	}
 	
+	public static NodeGene newBiasNode() {
+		return new NodeGene(0, BIAS, new ArrayList<Integer>());
+	}
+	
+	@Override
+	public NodeGene clone() {
+		return new NodeGene(id,type,possibleOutputs);
+	}
 	
 			
 }

@@ -5,99 +5,138 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-public class NEATRecombiner implements Recombination {
+public class NEATRecombiner {
 
-	static double enableChance = 0.1;
-
-	@Override
-	public Genome recombine(Genome p1, Genome p2) {
-		ConnectionGene[] c1 = new ConnectionGene[p1.connections.size()];
-		ConnectionGene[] c2 = new ConnectionGene[p2.connections.size()];
-		c1 = p1.connections.toArray(c1);
-		c2 = p2.connections.toArray(c2);
+	static double enableChance = 0.75;
+	List<ConnectionGene> newConns;
+	List<NodeGene> nodes;
+	NodeGene biasNode;
+	
+	
+	public Genome recombine(Genome g1, Genome g2) {
+		newConns = new ArrayList<ConnectionGene>();
+		nodes = new ArrayList<NodeGene>();
+		biasNode = NodeGene.newBiasNode();
+		
+		ConnectionGene[] c1 = g1.getSortedGeneList();
+		ConnectionGene[] c2 = g2.getSortedGeneList();
 		Arrays.sort(c1);
 		Arrays.sort(c2);
+	//	printConnectionArray(c1);
+	//	printConnectionArray(c2);
 		int i = 0;
 		int j = 0;
-		Random rand = new Random();
-		List<ConnectionGene> newConns = new ArrayList<ConnectionGene>();
 		//TODO figure out some way of bringing the nodes across
 		//Might be better to recreate all the nodes out of the connections
-		List<NodeGene> nodes = new ArrayList<NodeGene>();
+		
 		while(i < c1.length && j < c2.length) {
 			if(c1[i].innov == c2[j].innov) {
-				if(rand.nextBoolean()) {
-					addConnection(newConns,c1[i]);
-					//We get the nodes from that parent too
-					addNode(nodes,p1.getNode(c1[i].in));
-					addNode(nodes,p1.getNode(c1[i].out));
-				}else {
-					addConnection(newConns,c2[j]);
-					addNode(nodes,p2.getNode(c2[j].in));
-					addNode(nodes,p2.getNode(c2[j].out));
-				}
+				selectRandom(c1[i],c2[j],g1,g2);
 				i++;
 				j++;
 			//if c2 is missing some genes
 			} else if(c1[i].innov < c2[j].innov) {
-				if(p1.fit >= p2.fit) {
-					addConnection(newConns,c1[i]);
-					addNode(nodes,p1.getNode(c1[i].in));
-					addNode(nodes,p1.getNode(c1[i].out));
+				if(g1.fit >= g2.fit) {
+					addConnection(c1[i],g1);
 				}
 				i++;
 			//if c1 is missing some genes
 			} else {
-				if(p2.fit >= p1.fit) {
-					addConnection(newConns,c2[j]);
-					addNode(nodes,p2.getNode(c2[j].in));
-					addNode(nodes,p2.getNode(c2[j].out));
+				if(g2.fit >= g1.fit) {
+					addConnection(c2[j],g2);
 				}
 				j++;
 			}
 		}
 		//Do any excess genes
-		while(i < c1.length && p1.fit >= p2.fit) {
-			addConnection(newConns,c1[i]);
-			addNode(nodes,p1.getNode(c1[i].in));
-			addNode(nodes,p1.getNode(c1[i].out));
+		while(i < c1.length && g1.fit >= g2.fit) {
+			addConnection(c1[i],g1);
 			i++;
 		}
-		while(j < c2.length && p2.fit >= p1.fit) {
-			addConnection(newConns,c2[j]);
-			addNode(nodes,p2.getNode(c2[j].in));
-			addNode(nodes,p2.getNode(c2[j].out));
+		while(j < c2.length && g2.fit >= g1.fit) {
+			addConnection(c2[j],g2);
 			j++;
 		}
 		//Make sure we add all the input and output nodes
 		//Either genome should have all the correct nodes
-		List<NodeGene> inputs = p1.getInputNodes();
-		List<NodeGene> outputs = p1.getOutputNodes();
-		for(NodeGene n : inputs)
-			addNode(nodes,n);
-		for(NodeGene n : outputs)
-			addNode(nodes,n);
+		//TODO need to generate new inputs that know about ALL the hidden nodes
+		List<NodeGene> inputs1 = g1.getInputNodes();
+		List<NodeGene> outputs1 = g1.getOutputNodes();
+		List<NodeGene> inputs2 = g2.getInputNodes();
+		List<NodeGene> outputs2 = g2.getOutputNodes();
+		for(NodeGene n : inputs1)
+			addNode(n);
+		for(NodeGene n : outputs1)
+			addNode(n);
+		for(NodeGene n : inputs2)
+			addNode(n);
+		for(NodeGene n : outputs2)
+			addNode(n);
 		
-		//Don't forget to add in the bias neuron again!
-		//Just to make sure although they should be
-		//picked up by the previous checks
-		if(p1.fit > p2.fit) {
-			addNode(nodes,p1.getBiasNode());
-		} else {
-			addNode(nodes,p2.getBiasNode());
+		addNode(biasNode);
+		
+		Genome newGene = new Genome(g1.numInputs,g2.numOutputs,nodes,newConns,0);
+		//Determine the maximum node number
+		int max = Integer.MIN_VALUE;
+		for(NodeGene g : newGene.nodes) {
+			if(g.id > max)
+				max = g.id;
 		}
-		
-		return new Genome(p1.numInputs,p2.numOutputs,nodes,newConns,0);
+		newGene.nodeNum = max+1;
+		return newGene;
 	}
 	
-	private void addNode(List<NodeGene> nodes, NodeGene g) {
-		if(!nodes.contains(g))
-			nodes.add(g);
+	private void selectRandom(ConnectionGene c1, ConnectionGene c2, Genome g1, Genome g2) {
+		Random rand = new Random();
+		if(rand.nextBoolean()) {
+			addConnection(c1,g1);
+		}else {
+			addConnection(c2,g2);
+		}
 	}
 	
-	private void addConnection(List<ConnectionGene> conns, ConnectionGene g) {
-		if(!conns.contains(g))
-			conns.add(g);
+	//TODO Can attempt to add a a node that we don't have in the genome right now
+	private void addNode(NodeGene g) {
+		//if(g != null) 	//TODO worrying that I have to check this
+						//shouldn't be passed null genes
+			if(!nodes.contains(g)) {
+				nodes.add(g);
+				if(g.type != NodeGene.INPUT && g.type != NodeGene.BIAS)
+					biasNode.addOutput(g.id);
+			} else {
+				//inherit every possible output
+				NodeGene nodeInList = null;
+				for(NodeGene n : nodes) {
+					if(n.id == g.id)
+						nodeInList = n;
+				}
+				for(Integer out : g.possibleOutputs)
+					nodeInList.addOutput(out);
+			}
+	}
+	
+	/**
+	 * 
+	 * @param conns
+	 * @param g
+	 * @param gene the genome that this connection came from
+	 */
+	private void addConnection(ConnectionGene g, Genome gene) {
+		if(!newConns.contains(g)) {
+			Random rand = new Random();
+			if(g.enabled == false && rand.nextDouble() < enableChance)
+				g.enabled = true;
+			newConns.add(g);
+			addNode(gene.getNode(g.in)); //TODO These getNodes are sometimes returning null
+			addNode(gene.getNode(g.out));
+		}
+	}
+	
+	private void printConnectionArray(ConnectionGene[] cgs) {
+		for(ConnectionGene cg : cgs) {
+			System.out.print(cg.toString() + " ");
+		}
+		System.out.println();
 	}
 
 }
