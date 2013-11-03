@@ -58,7 +58,7 @@ public class MatchPlayer {
 		Map<GATree, FitnessMeasure> m = new HashMap<GATree, FitnessMeasure>();
 		List<GATree> testing = new LinkedList<GATree>(treesToTest);
 		treesToTest.clear();
-		br.runBattles(testing, new BotList("sample.Walls"), new ResultsHandler(m));
+		br.runBattles(testing, new BotList(Config.get().opponent), new ResultsHandler(m));
 		br.shutdown();
 		return m;
 	}

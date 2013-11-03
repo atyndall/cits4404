@@ -16,10 +16,12 @@ public final class Config implements Serializable {
 	public final int genMinNodes = 3;
 	public final int genMaxNodes = 10;
 	
-	public final String fitnessMeasure = "rouletteWheel";
+	public final String fitnessMeasure = "topX";
 	
 	public final int numGenerations = 100;
-	public final int numGenomes = 100;
+	public final int numGenomes = 1000;
+	
+	public final String opponent = "sample.Walls";
 	
 	public final Map<String, Double> decisions = new HashMap<String, Double>() {
 		{
